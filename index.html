@@ -16,11 +16,15 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--surface);color:var(--white);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
-body{padding-bottom:20px}
 button{font-family:inherit;cursor:pointer}
 
 /* ── TOPBAR ── */
-.topbar{position:sticky;top:0;z-index:60;background:rgba(8,14,26,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:10px 14px 9px}
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:60;
+  background:rgba(8,14,26,.97);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:10px 14px 9px;
+}
 .t1{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;flex:1}
 .dtabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
@@ -30,49 +34,52 @@ button{font-family:inherit;cursor:pointer}
 .dt.on-push{background:var(--push-bg);color:var(--push);border-color:var(--push)}
 .dt.on-pull{background:var(--pull-bg);color:var(--pull);border-color:var(--pull)}
 
-/* ── STICKY TIMER (below topbar) ── */
-.sticky-timer{
-  position:sticky;
-  top:107px; /* height of topbar */
+/* ── FIXED TIMER BAR — always on screen like ecommerce sticky CTA ── */
+.fixed-timer{
+  position:fixed;
+  left:0;right:0;
   z-index:55;
-  padding:0 14px 6px;
-  background:rgba(8,14,26,.97);
+  padding:0 14px;
+  /* top set dynamically by JS to sit just below topbar */
+}
+.ftimer-card{
+  background:rgba(14,20,34,.97);
   backdrop-filter:blur(16px);
-}
-.stimer-card{
-  border-radius:14px;
   border:1px solid var(--border);
+  border-radius:14px;
   overflow:hidden;
-  background:var(--card2);
-  transition:border-color .3s;
+  transition:border-color .3s, box-shadow .3s;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
 }
-.stimer-card.active{ border-color:rgba(255,255,255,.2); }
-/* top row: block name + exercise counter */
-.stimer-top{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 14px 6px;
+.ftimer-card.active{
+  border-color:rgba(255,255,255,.18);
+  box-shadow:0 4px 28px rgba(0,0,0,.6);
 }
-.stimer-block{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);flex:1}
-.stimer-excount{font-size:11px;font-weight:600;color:var(--muted)}
-/* main row: phase + big clock + buttons */
-.stimer-main{
-  display:flex;align-items:center;gap:10px;
-  padding:0 14px 8px;
-}
-.stimer-phase{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);flex:1;line-height:1.3}
-.stimer-phase span{display:block;font-size:10px;font-weight:500;color:var(--muted);opacity:.7;margin-top:1px}
-.stimer-clock{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;line-height:1;min-width:80px;text-align:right;transition:color .3s}
-.stimer-btns{display:flex;flex-direction:column;gap:5px}
-.stimer-btn{width:34px;height:30px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.05);font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s}
-.stimer-btn:active{opacity:.6}
+/* row 1: block label + exercise counter */
+.ft-top{display:flex;align-items:center;padding:8px 14px 0;gap:8px}
+.ft-block{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;flex:1;color:var(--muted)}
+.ft-excount{font-size:11px;font-weight:700}
+/* row 2: phase + BIG clock + buttons */
+.ft-main{display:flex;align-items:center;padding:2px 14px 6px;gap:10px}
+.ft-phase{flex:1;min-width:0}
+.ft-phase-lbl{font-size:12px;font-weight:700;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-phase-sub{font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-clock{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:2px;line-height:1;min-width:88px;text-align:right;transition:color .3s}
+.ft-btns{display:flex;gap:5px;flex-shrink:0}
+.ft-btn{width:36px;height:32px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ft-btn:active{opacity:.6}
 /* progress bar */
-.stimer-track{height:5px;background:var(--border)}
-.stimer-fill{height:100%;transition:width .95s linear}
-/* step label */
-.stimer-step{font-size:11px;color:var(--muted);padding:5px 14px 8px;line-height:1.3;min-height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-track{height:5px;background:rgba(255,255,255,.07)}
+.ft-fill{height:100%;transition:width .95s linear}
+/* step text */
+.ft-step{font-size:11px;color:var(--muted);padding:5px 14px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1}
+
+/* ── PAGE CONTENT — padded to avoid overlapping fixed elements ── */
+/* topbar ~107px + timer ~110px + gap */
+.page-top-pad{height:230px} /* filled dynamically */
 
 /* ── HERO ── */
-.hero{padding:16px 16px 8px;text-align:center}
+.hero{padding:14px 16px 8px;text-align:center}
 .htitle{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;line-height:1}
 .hmeta{font-size:12px;color:var(--muted);margin-top:3px}
 .htags{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
@@ -92,7 +99,7 @@ button{font-family:inherit;cursor:pointer}
 .sec-btn{font-size:11px;font-weight:600;color:var(--muted);padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;white-space:nowrap}
 
 /* ── CARDS ── */
-.cards{padding:0 16px;display:flex;flex-direction:column;gap:10px}
+.cards{padding:0 16px;display:flex;flex-direction:column;gap:10px;padding-bottom:24px}
 
 /* ── TIMED BLOCK ── */
 .tblock{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
@@ -102,7 +109,7 @@ button{font-family:inherit;cursor:pointer}
 .tex-list{display:flex;flex-direction:column}
 .tex-item{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background .15s}
 .tex-item:last-child{border-bottom:none}
-.tex-item.done{opacity:.35}
+.tex-item.done{opacity:.33}
 .tex-item.active-ex{background:rgba(255,255,255,.05)}
 .tex-img{width:78px;min-height:78px;flex-shrink:0;overflow:hidden;background:#050a12;position:relative;cursor:pointer}
 .tex-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -126,7 +133,7 @@ button{font-family:inherit;cursor:pointer}
 
 /* ── MAIN CARD ── */
 .excard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;transition:border-color .2s}
-.excard.done{opacity:.35}
+.excard.done{opacity:.33}
 .excard.active-ex{border-color:rgba(255,255,255,.2)}
 .ex-img{width:100%;height:185px;overflow:hidden;background:#050a12;position:relative;cursor:pointer}
 .ex-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -147,7 +154,10 @@ button{font-family:inherit;cursor:pointer}
 .serie-dot.done-dot{background:currentColor;border-color:currentColor}
 .serie-lbl{font-size:10px;color:var(--muted);margin-left:4px}
 .ex-tip{font-size:11px;color:var(--muted);line-height:1.55;padding:9px 0 0;border-top:1px solid var(--border);margin-top:11px}
-.done-btn{width:100%;margin-top:11px;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.2px;transition:.15s}
+/* timer start button inside main card */
+.ex-timer-btn{width:100%;margin-top:10px;padding:9px;border-radius:9px;border:none;font-size:12px;font-weight:700;color:#fff;letter-spacing:.2px;opacity:.85}
+.ex-timer-btn:active{opacity:.6}
+.done-btn{width:100%;margin-top:8px;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.2px;transition:.15s}
 .done-btn.marked{border-color:transparent;color:#080e1a}
 
 /* ── MODAL ── */
@@ -179,7 +189,8 @@ button{font-family:inherit;cursor:pointer}
 </head>
 <body>
 
-<div class="topbar">
+<!-- FIXED TOPBAR -->
+<div class="topbar" id="topbar">
   <div class="t1"><span class="logo">ENTRENA</span></div>
   <div class="dtabs">
     <button class="dt on-legs" onclick="showDay('legs')" id="btn-legs"><em>🦵</em>PIERNAS</button>
@@ -188,28 +199,31 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </div>
 
-<!-- STICKY TIMER — always visible below topbar -->
-<div class="sticky-timer">
-  <div class="stimer-card" id="stimer">
-    <div class="stimer-top">
-      <span class="stimer-block" id="st-block">EN ESPERA</span>
-      <span class="stimer-excount" id="st-excount"></span>
+<!-- FIXED TIMER — always visible, like ecommerce sticky CTA -->
+<div class="fixed-timer" id="fixed-timer">
+  <div class="ftimer-card" id="ftcard">
+    <div class="ft-top">
+      <span class="ft-block" id="ft-block">EN ESPERA</span>
+      <span class="ft-excount" id="ft-excount"></span>
     </div>
-    <div class="stimer-main">
-      <div class="stimer-phase" id="st-phase">
-        Pulsa Iniciar en cualquier bloque
-        <span id="st-sub"></span>
+    <div class="ft-main">
+      <div class="ft-phase">
+        <div class="ft-phase-lbl" id="ft-lbl">Pulsa ▶ en cualquier bloque</div>
+        <div class="ft-phase-sub" id="ft-sub"></div>
       </div>
-      <div class="stimer-clock" id="st-clock">—</div>
-      <div class="stimer-btns">
-        <button class="stimer-btn" id="st-pause" onclick="stimerPause()" title="Pausa">⏸</button>
-        <button class="stimer-btn" onclick="stimerRestart()" title="Reiniciar">↺</button>
+      <div class="ft-clock" id="ft-clock" style="color:var(--muted)">—</div>
+      <div class="ft-btns">
+        <button class="ft-btn" id="ft-pause" onclick="timerPause()" title="Pausa">⏸</button>
+        <button class="ft-btn" onclick="timerRestart()" title="Reiniciar">↺</button>
       </div>
     </div>
-    <div class="stimer-track"><div class="stimer-fill" id="st-fill" style="width:0%"></div></div>
-    <div class="stimer-step" id="st-step"></div>
+    <div class="ft-track"><div class="ft-fill" id="ft-fill" style="width:0%"></div></div>
+    <div class="ft-step" id="ft-step"> </div>
   </div>
 </div>
+
+<!-- SPACER — height set by JS to match topbar + timer height -->
+<div id="page-pad"></div>
 
 <div class="hero">
   <div class="htitle" id="htitle">PIERNAS</div>
@@ -222,6 +236,7 @@ button{font-family:inherit;cursor:pointer}
 </div>
 <div id="content"></div>
 
+<!-- MODAL -->
 <div class="overlay" id="overlay" onclick="bgClose(event)">
   <div class="modal">
     <div class="modal-hdr">
@@ -236,6 +251,20 @@ button{font-family:inherit;cursor:pointer}
 
 <script>
 // ══════════════════════════════════════════════════
+// LAYOUT: measure fixed elements and set spacer
+// ══════════════════════════════════════════════════
+function setLayout(){
+  const tb=document.getElementById('topbar');
+  const ft=document.getElementById('fixed-timer');
+  const tbH=tb.getBoundingClientRect().height;
+  ft.style.top=tbH+'px';
+  const ftH=ft.getBoundingClientRect().height;
+  document.getElementById('page-pad').style.height=(tbH+ftH+6)+'px';
+}
+window.addEventListener('resize',setLayout);
+// call after render
+
+// ══════════════════════════════════════════════════
 // AUDIO
 // ══════════════════════════════════════════════════
 let _actx=null;
@@ -246,186 +275,197 @@ function getCtx(){
 }
 function beep(freq=880,dur=0.12,vol=0.4,delay=0){
   try{const ctx=getCtx();const o=ctx.createOscillator(),g=ctx.createGain();
-  o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;
-  const t=ctx.currentTime+delay;
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.01);g.gain.linearRampToValueAtTime(0,t+dur);
-  o.start(t);o.stop(t+dur+0.05);}catch(e){}
+    o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;
+    const t=ctx.currentTime+delay;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.linearRampToValueAtTime(0,t+dur);
+    o.start(t);o.stop(t+dur+0.05);
+  }catch(e){}
 }
 document.addEventListener('touchstart',()=>getCtx(),{once:true});
 document.addEventListener('click',()=>getCtx(),{once:true});
+
 function sndCountdown(){ beep(700,0.09,0.3); }
-function sndGo(){ beep(880,0.07,0.5);setTimeout(()=>beep(880,0.07,0.5),90);setTimeout(()=>beep(1100,0.18,0.6),180); }
-function sndEndSerie(){ beep(500,0.12,0.35);setTimeout(()=>beep(400,0.12,0.35),150); }
-function sndEndExercise(){ beep(600,0.09,0.45);setTimeout(()=>beep(600,0.09,0.45),110);setTimeout(()=>beep(800,0.2,0.55),220); }
-function sndEndBlock(){ [0,130,260,390].forEach((d,i)=>setTimeout(()=>beep(800+i*120,0.16,0.5),d)); }
+function sndGo(){
+  // Long start beep — signals end of rest, beginning of work
+  beep(440,0.06,0.2);
+  beep(660,0.06,0.3,0.07);
+  beep(880,0.8,0.6,0.14); // long sustained tone
+}
+function sndEndWork(){
+  // Short double beep — end of work interval
+  beep(500,0.1,0.35);
+  setTimeout(()=>beep(400,0.1,0.35),130);
+}
+function sndEndExercise(){
+  // Triple mid beep — exercise complete
+  beep(600,0.08,0.4);
+  setTimeout(()=>beep(600,0.08,0.4),110);
+  setTimeout(()=>beep(800,0.18,0.5),220);
+}
+function sndEndBlock(){
+  // Four rising beeps — block complete
+  [0,140,280,420].forEach((d,i)=>setTimeout(()=>beep(700+i*130,0.18,0.5),d));
+}
+function sndEndRest(){
+  // THE key beep: long tone signaling "get ready, work starts"
+  // Same as sndGo — played at end of rest countdown (3,2,1 ticks then this)
+  sndGo();
+}
 
 // ══════════════════════════════════════════════════
 // UNIFIED TIMER STATE
 // ══════════════════════════════════════════════════
-const TS={
-  sec:0, maxSec:1,
-  running:false, paused:false,
-  int:null,
-  blockKey:'',   // 'warm'|'core'|'main'
-  phaseLbl:'',   // TRABAJO / DESCANSO / PREPARADO
-  stepLbl:'',    // exercise name + serie info
-  color:'var(--white)',
-  // progress tracking for header counter
-  exTotal:0, exDone:0,
+const T={
+  sec:0,maxSec:1,
+  running:false,paused:false,int:null,
+  blockKey:'',color:'var(--white)',
+  phaseLbl:'',phaseSub:'',stepLbl:'',
+  exTotal:0,exDone:0,
 };
 
 function killTimer(){
-  if(TS.int){clearInterval(TS.int);TS.int=null;}
-  TS.running=false; TS.paused=false;
+  if(T.int){clearInterval(T.int);T.int=null;}
+  T.running=false;T.paused=false;
 }
 
-// Start a timed phase, call onDone when it hits 0
-function startPhase(sec, phaseLbl, stepLbl, onDone){
-  if(TS.int) clearInterval(TS.int);
-  TS.sec=sec; TS.maxSec=sec;
-  TS.phaseLbl=phaseLbl; TS.stepLbl=stepLbl;
-  TS.running=true; TS.paused=false;
-  renderSticky();
-  TS.int=setInterval(()=>{
-    if(TS.paused) return;
-    TS.sec--;
-    if(TS.sec===3||TS.sec===2||TS.sec===1) sndCountdown();
-    renderSticky();
-    if(TS.sec<=0){ clearInterval(TS.int); TS.int=null; onDone(); }
+// Start a phase. onDone fires when sec reaches 0.
+// isRest=true: long beep at the end (signals start of next work)
+function startPhase(sec,phaseLbl,phaseSub,stepLbl,isRest,onDone){
+  if(T.int) clearInterval(T.int);
+  T.sec=sec;T.maxSec=sec;
+  T.phaseLbl=phaseLbl;T.phaseSub=phaseSub;T.stepLbl=stepLbl;
+  T.running=true;T.paused=false;
+  renderTimer();
+  T.int=setInterval(()=>{
+    if(T.paused) return;
+    T.sec--;
+    if(T.sec===3||T.sec===2||T.sec===1) sndCountdown();
+    renderTimer();
+    if(T.sec<=0){
+      clearInterval(T.int);T.int=null;
+      if(isRest) sndEndRest(); // long beep = go!
+      onDone();
+    }
   },1000);
 }
 
-// 5s countdown only at start of whole block
-function startCountdown5(stepLbl, onGo){
-  if(TS.int) clearInterval(TS.int);
-  TS.sec=5; TS.maxSec=5;
-  TS.phaseLbl='PREPARADO…'; TS.stepLbl=stepLbl;
-  TS.running=true; TS.paused=false;
-  renderSticky();
-  TS.int=setInterval(()=>{
-    if(TS.paused) return;
-    TS.sec--;
-    if(TS.sec===3||TS.sec===2||TS.sec===1) sndCountdown();
-    renderSticky();
-    if(TS.sec<=0){ clearInterval(TS.int); TS.int=null; sndGo(); onGo(); }
+// 5s countdown only at the very start of a block
+function startCountdown5(firstExName,onGo){
+  if(T.int) clearInterval(T.int);
+  T.sec=5;T.maxSec=5;
+  T.phaseLbl='PREPARADO…';T.phaseSub='';T.stepLbl=firstExName;
+  T.running=true;T.paused=false;
+  renderTimer();
+  T.int=setInterval(()=>{
+    if(T.paused) return;
+    T.sec--;
+    if(T.sec===3||T.sec===2||T.sec===1) sndCountdown();
+    renderTimer();
+    if(T.sec<=0){ clearInterval(T.int);T.int=null; sndEndRest(); onGo(); }
   },1000);
 }
 
-function stimerPause(){
-  if(!TS.running) return;
-  TS.paused=!TS.paused;
-  document.getElementById('st-pause').textContent=TS.paused?'▶':'⏸';
+function timerPause(){
+  if(!T.running) return;
+  T.paused=!T.paused;
+  document.getElementById('ft-pause').textContent=T.paused?'▶':'⏸';
 }
-function stimerRestart(){
+function timerRestart(){
   killTimer();
-  TS.sec=0; TS.maxSec=1; TS.phaseLbl=''; TS.stepLbl=''; TS.blockKey='';
-  TS.exDone=0; TS.exTotal=0;
-  renderSticky();
+  T.sec=0;T.maxSec=1;T.phaseLbl='';T.phaseSub='';T.stepLbl='';T.blockKey='';
+  T.exDone=0;T.exTotal=0;
+  renderTimer();
 }
 
-function renderSticky(){
-  const pct=TS.maxSec>0?Math.max(0,TS.sec/TS.maxSec*100):0;
-  const mm=Math.floor(TS.sec/60), ss=String(TS.sec%60).padStart(2,'0');
-  const card=document.getElementById('stimer');
-  card.classList.toggle('active', TS.running);
+function renderTimer(){
+  const pct=T.maxSec>0?Math.max(0,T.sec/T.maxSec*100):0;
+  const mm=Math.floor(T.sec/60),ss=String(T.sec%60).padStart(2,'0');
+  const card=document.getElementById('ftcard');
+  card.classList.toggle('active',T.running);
 
-  // block label
   const bNames={warm:'CALENTAMIENTO',core:'CORE',main:'EJERCICIOS PRINCIPALES','':'EN ESPERA'};
-  document.getElementById('st-block').textContent=bNames[TS.blockKey]||'EN ESPERA';
-  document.getElementById('st-block').style.color=TS.running?TS.color:'var(--muted)';
+  const bEl=document.getElementById('ft-block');
+  bEl.textContent=bNames[T.blockKey]||'EN ESPERA';
+  bEl.style.color=T.running?T.color:'var(--muted)';
 
-  // exercise counter
-  const ec=document.getElementById('st-excount');
-  ec.textContent=TS.exTotal>0?`${TS.exDone}/${TS.exTotal} ejercicios`:'';
-  ec.style.color=TS.color;
+  const ec=document.getElementById('ft-excount');
+  ec.textContent=T.exTotal>0?`${T.exDone}/${T.exTotal}`:'';
+  ec.style.color=T.color;
 
-  // phase + sub
-  document.getElementById('st-phase').childNodes[0].textContent=TS.running?(TS.phaseLbl||'EN CURSO'):'Pulsa Iniciar en cualquier bloque';
-  document.getElementById('st-sub').textContent='';
+  document.getElementById('ft-lbl').textContent=T.running?(T.phaseLbl||'EN CURSO'):'Pulsa ▶ en cualquier bloque';
+  document.getElementById('ft-sub').textContent=T.phaseSub||'';
 
-  // clock
-  const clk=document.getElementById('st-clock');
-  clk.textContent=TS.running?`${mm}:${ss}`:'—';
-  clk.style.color=TS.running?TS.color:'var(--muted)';
+  const clk=document.getElementById('ft-clock');
+  clk.textContent=T.running?`${mm}:${ss}`:'—';
+  clk.style.color=T.running?T.color:'var(--muted)';
 
-  // fill
-  document.getElementById('st-fill').style.cssText=`width:${pct}%;background:${TS.color}`;
-
-  // step label
-  document.getElementById('st-step').textContent=TS.stepLbl||'';
-
-  // pause button
-  document.getElementById('st-pause').textContent=TS.paused?'▶':'⏸';
+  document.getElementById('ft-fill').style.cssText=`width:${pct}%;background:${T.color}`;
+  document.getElementById('ft-step').textContent=T.stepLbl||'\u00a0';
+  document.getElementById('ft-pause').textContent=T.paused?'▶':'⏸';
 }
 
 // ══════════════════════════════════════════════════
 // SEQUENCE RUNNERS
 // ══════════════════════════════════════════════════
 
-// WARMUP: each exercise once → 12s rest → next → end of round → 45s → next round
-function runWarm(exList, rounds, workSec){
+// WARMUP: each exercise once → 12s rest → next → end of round → 45s → next round × 3
+function runWarm(exList){
   killTimer();
-  TS.blockKey='warm'; TS.color='var(--warm)';
-  TS.exTotal=rounds; TS.exDone=0;
-  let round=0, exIdx=0;
+  T.blockKey='warm';T.color='var(--warm)';
+  T.exTotal=3;T.exDone=0;
+  let round=0,exIdx=0;
   highlightTex(null);
 
   function doEx(){
-    if(exIdx>=exList.length){ endRound(); return; }
+    if(exIdx>=exList.length){endRound();return;}
     const ex=exList[exIdx];
     highlightTex(ex.id);
-    // no countdown between exercises — just work
-    startPhase(workSec,'TRABAJO',ex.name,()=>{
-      sndEndSerie();
+    startPhase(25,'TRABAJO','Ronda '+(round+1)+'/3',ex.name,false,()=>{
+      sndEndWork();
       markTimedDone('warm',ex.id);
       exIdx++;
       if(exIdx<exList.length){
-        startPhase(12,'DESCANSO','→ '+exList[exIdx].name,()=>doEx());
+        // 12s rest — long beep at end signals next exercise
+        startPhase(12,'DESCANSO','→ '+exList[exIdx].name,'',true,()=>doEx());
       } else { endRound(); }
     });
   }
 
   function endRound(){
-    round++;
-    TS.exDone=round;
-    renderSticky();
-    if(round>=rounds){ sndEndBlock(); killTimer(); highlightTex(null); TS.exDone=rounds; renderSticky(); return; }
-    startPhase(45,'DESCANSO ENTRE RONDAS','Ronda '+(round+1)+' de '+rounds,()=>{
-      exIdx=0;
-      doEx();
-    });
+    round++;T.exDone=round;renderTimer();
+    if(round>=3){sndEndBlock();killTimer();highlightTex(null);T.exDone=3;renderTimer();return;}
+    // 45s between rounds — long beep at end
+    startPhase(45,'DESCANSO ENTRE RONDAS','Ronda '+(round+1)+'/3','',true,()=>{exIdx=0;doEx();});
   }
 
-  // only 5s countdown at the very start
-  startCountdown5(exList[0].name, ()=>doEx());
+  startCountdown5(exList[0].name,()=>doEx());
 }
 
-// CORE / MAIN: all series of exercise → 45s → next exercise
-// No countdown between series/exercises — just the 12s rest phase
-function runBlock(key, exList, getSeriesCount, workSec){
+// CORE/MAIN: all 3 series of each exercise → 45s → next exercise
+function runBlock(key,exList,workSec){
   killTimer();
-  TS.blockKey=key; TS.color=key==='core'?'var(--core)':'var(--white)';
-  TS.exTotal=exList.length; TS.exDone=0;
+  T.blockKey=key;T.color=key==='core'?'var(--core)':'var(--white)';
+  T.exTotal=exList.length;T.exDone=0;
   let exIdx=0;
-  highlightEx(null);
+  if(key==='main') highlightEx(null); else highlightTex(null);
 
   function doExercise(){
-    if(exIdx>=exList.length){ sndEndBlock(); killTimer(); highlightEx(null); TS.exDone=exList.length; renderSticky(); return; }
+    if(exIdx>=exList.length){sndEndBlock();killTimer();T.exDone=exList.length;renderTimer();if(key==='main')highlightEx(null);else highlightTex(null);return;}
     const ex=exList[exIdx];
-    const totalSeries=getSeriesCount(ex);
+    const totalSeries=3;
     let serie=0;
-    highlightEx(ex.id);
+    if(key==='main') highlightEx(ex.id); else highlightTex(ex.id);
 
     function doSerie(){
-      if(serie>=totalSeries){ endExercise(); return; }
-      const lbl=`${ex.name}  ·  serie ${serie+1}/${totalSeries}`;
-      startPhase(workSec,'TRABAJO',lbl,()=>{
-        sndEndSerie();
+      if(serie>=totalSeries){endExercise();return;}
+      const sub=`${ex.name}  ·  serie ${serie+1}/3`;
+      startPhase(workSec,'TRABAJO','',sub,false,()=>{
+        sndEndWork();
         markSerieDone(key,ex.id,serie);
         serie++;
         if(serie<totalSeries){
-          // 12s rest between series — no extra countdown
-          startPhase(12,'DESCANSO',`${ex.name}  ·  serie ${serie+1}/${totalSeries} a punto`,()=>doSerie());
+          // 12s rest between series — long beep at end
+          startPhase(12,'DESCANSO',`Serie ${serie+1}/3 a punto`,'',true,()=>doSerie());
         } else { endExercise(); }
       });
     }
@@ -433,28 +473,26 @@ function runBlock(key, exList, getSeriesCount, workSec){
     function endExercise(){
       sndEndExercise();
       markTimedDone(key,ex.id);
-      TS.exDone=exIdx+1; renderSticky();
+      T.exDone=exIdx+1;renderTimer();
       exIdx++;
       if(exIdx<exList.length){
-        // 45s rest between exercises — no extra countdown
-        startPhase(45,'DESCANSO','→ '+exList[exIdx].name,()=>doExercise());
-      } else { sndEndBlock(); killTimer(); highlightEx(null); TS.exDone=exList.length; renderSticky(); }
+        // 45s rest between exercises — long beep at end
+        startPhase(45,'DESCANSO','→ '+exList[exIdx].name,'',true,()=>doExercise());
+      } else { sndEndBlock();killTimer();T.exDone=exList.length;renderTimer();if(key==='main')highlightEx(null);else highlightTex(null); }
     }
-
     doSerie();
   }
 
-  // only 5s countdown at start of the whole block
-  startCountdown5(exList[0].name+' · serie 1/'+getSeriesCount(exList[0]), ()=>doExercise());
+  startCountdown5(exList[0].name+' · serie 1/3',()=>doExercise());
 }
 
 function highlightTex(id){
   document.querySelectorAll('.tex-item').forEach(el=>el.classList.remove('active-ex'));
-  if(id){ const el=document.getElementById('ti'+id); if(el){ el.classList.add('active-ex'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); } }
+  if(id){const el=document.getElementById('ti'+id);if(el){el.classList.add('active-ex');el.scrollIntoView({behavior:'smooth',block:'nearest'});}}
 }
 function highlightEx(id){
   document.querySelectorAll('.excard').forEach(el=>el.classList.remove('active-ex'));
-  if(id){ const el=document.getElementById('ec'+id); if(el){ el.classList.add('active-ex'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); } }
+  if(id){const el=document.getElementById('ec'+id);if(el){el.classList.add('active-ex');el.scrollIntoView({behavior:'smooth',block:'nearest'});}}
 }
 
 // ══════════════════════════════════════════════════
@@ -464,80 +502,80 @@ const B="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercis
 const I=f=>[`${B}/${f}/0.jpg`,`${B}/${f}/1.jpg`];
 
 const WARMUP=[
-  {id:'inchworm',name:'Gusano (Inchworm)',meta:'3 × 25 seg',img:I('Inchworm'),instr:'De pie, flexiona caderas, apoya manos en el suelo y camínalas hasta plancha. Vuelve. Piernas rectas.'},
+  {id:'inchworm',name:'Gusano (Inchworm)',meta:'3 × 25 seg',img:I('Inchworm'),instr:'De pie, flexiona caderas, apoya manos en suelo y camínalas hasta plancha. Vuelve. Piernas rectas.'},
   {id:'jumping',name:'Jumping Jacks',meta:'3 × 25 seg',img:I('Star_Jump'),instr:'Salta abriendo piernas y subiendo brazos sobre la cabeza. Ritmo constante.'},
   {id:'mountain',name:'Mountain Climbers',meta:'3 × 25 seg',img:I('Mountain_Climbers'),instr:'Plancha alta, lleva alternando cada rodilla al pecho. Caderas bajas, core activo.'},
   {id:'squat_bw',name:'Sentadilla sin peso',meta:'3 × 25 seg',img:I('Bodyweight_Squat'),instr:'Pies a anchura de hombros, brazos al frente. Baja hasta muslos paralelos.'},
-  {id:'skipping',name:'Skipping (rodillas altas)',meta:'3 × 25 seg',img:I('Fast_Skipping'),instr:'Trota elevando rodillas por encima de la cadera alternando. Torso erguido.'},
+  {id:'skipping',name:'Skipping (rodillas altas)',meta:'3 × 25 seg',img:I('Fast_Skipping'),instr:'Trota elevando rodillas por encima de la cadera. Torso erguido.'},
   {id:'burpee',name:'Burpees',meta:'3 × 25 seg',img:I('Single_Leg_Butt_Kick'),instr:'De pie → manos al suelo → plancha → flexión → pies a manos → salto.'},
   {id:'rotacion',name:'Rotación de brazos',meta:'3 × 25 seg',img:I('Arm_Circles'),instr:'Brazos en cruz. Círculos desde el hombro. 15s adelante, 15s atrás.'},
-  {id:'lunge_bw',name:'Zancadas sin peso',meta:'3 × 25 seg',img:I('Bodyweight_Walking_Lunge'),instr:'Zancadas alternando piernas. Torso erguido, rodilla trasera cerca del suelo.'},
+  {id:'lunge_bw',name:'Zancadas sin peso',meta:'3 × 25 seg',img:I('Bodyweight_Walking_Lunge'),instr:'Zancadas alternando. Torso erguido, rodilla trasera cerca del suelo.'},
 ];
 const CORE=[
-  {id:'plancha',name:'Plancha frontal',meta:'4 × 30 seg',img:I('Plank'),instr:'Antebrazos y puntillas. Cuerpo recto. Core activado. Sin hundir ni elevar caderas.'},
-  {id:'planchalat',name:'Plancha lateral',meta:'4 × 30 seg c/lado',img:I('Push_Up_to_Side_Plank'),instr:'Antebrazo y borde lateral del pie. Cuerpo en línea recta. Cadera arriba.'},
-  {id:'dead_bug',name:'Dead Bug',meta:'4 × 30 seg',img:I('Dead_Bug'),instr:'Boca arriba, brazos al techo, rodillas 90°. Baja brazo der + pierna izq. Alterna.'},
-  {id:'russian',name:'Russian Twist KB',meta:'4 × 30 seg',img:I('Russian_Twist'),instr:'Sentado, espalda 45°. KB rota tocando el suelo a cada lado.'},
-  {id:'mountain_c',name:'Mountain Climbers (lento)',meta:'4 × 30 seg',img:I('Mountain_Climbers'),instr:'Plancha alta, rodillas al pecho alternando. Ritmo controlado.'},
-  {id:'superman',name:'Superman',meta:'4 × 30 seg',img:I('Superman'),instr:'Boca abajo, eleva brazos, pecho y piernas. Aguanta 2 seg. Baja controlado.'},
-  {id:'empuje_rod',name:'Empuje de rodillas',meta:'4 × 30 seg',img:I('Dead_Bug'),instr:'Cuatro patas. Extiende brazo der + pierna izq. 2 seg. Alterna.'},
-  {id:'toques',name:'Toques laterales',meta:'4 × 30 seg',img:I('Dead_Bug'),instr:'Tumbado, rodillas dobladas. Desliza mano al tobillo. Alterna lados.'},
-  {id:'hollow',name:'Hollow Body Hold',meta:'4 × 30 seg',img:I('Plank'),instr:'Tumbado, lumbar al suelo. Eleva hombros y piernas. Brazos atrás. Aguanta.'},
-  {id:'glute_kick',name:'Patada de glúteo',meta:'4 × 30 seg',img:I('Glute_Kickback'),instr:'Cuatro patas. Extiende pierna atrás apretando glúteo. Cadera nivelada.'},
+  {id:'plancha',name:'Plancha frontal',meta:'3 × 30 seg',img:I('Plank'),instr:'Antebrazos y puntillas. Cuerpo recto. Core activado. Sin hundir ni elevar caderas.'},
+  {id:'planchalat',name:'Plancha lateral',meta:'3 × 30 seg c/lado',img:I('Push_Up_to_Side_Plank'),instr:'Antebrazo y borde lateral del pie. Cuerpo en línea recta. Cadera arriba.'},
+  {id:'dead_bug',name:'Dead Bug',meta:'3 × 30 seg',img:I('Dead_Bug'),instr:'Boca arriba, brazos al techo, rodillas 90°. Baja brazo der + pierna izq. Alterna.'},
+  {id:'russian',name:'Russian Twist KB',meta:'3 × 30 seg',img:I('Russian_Twist'),instr:'Sentado, espalda 45°. KB rota tocando el suelo a cada lado.'},
+  {id:'mountain_c',name:'Mountain Climbers (lento)',meta:'3 × 30 seg',img:I('Mountain_Climbers'),instr:'Plancha alta, rodillas al pecho alternando. Ritmo controlado.'},
+  {id:'superman',name:'Superman',meta:'3 × 30 seg',img:I('Superman'),instr:'Boca abajo, eleva brazos, pecho y piernas. Aguanta 2 seg. Baja controlado.'},
+  {id:'empuje_rod',name:'Empuje de rodillas',meta:'3 × 30 seg',img:I('Dead_Bug'),instr:'Cuatro patas. Extiende brazo der + pierna izq. 2 seg. Alterna.'},
+  {id:'toques',name:'Toques laterales',meta:'3 × 30 seg',img:I('Dead_Bug'),instr:'Tumbado, rodillas dobladas. Desliza mano al tobillo. Alterna lados.'},
+  {id:'hollow',name:'Hollow Body Hold',meta:'3 × 30 seg',img:I('Plank'),instr:'Tumbado, lumbar al suelo. Eleva hombros y piernas. Brazos atrás. Aguanta.'},
+  {id:'glute_kick',name:'Patada de glúteo',meta:'3 × 30 seg',img:I('Glute_Kickback'),instr:'Cuatro patas. Extiende pierna atrás apretando glúteo. Cadera nivelada.'},
 ];
 const POOLS={
   legs:[
-    {id:'squat',name:'Sentadilla con barra',mus:'Cuádriceps · Glúteos · Core',img:I('Barbell_Full_Squat'),sets:4,reps:'8–10',rest:'2:30',tip:'Barra en trapecio, pies a anchura de hombros. Rodillas siguen la punta del pie.'},
-    {id:'rdl',name:'Peso muerto rumano KB',mus:'Isquiotibiales · Glúteos · Lumbar',img:I('Romanian_Deadlift'),sets:3,reps:'10–12',rest:'2:00',tip:'Espalda neutra, caderas atrás. KB pegados a las piernas en todo momento.'},
-    {id:'lunge',name:'Zancadas con KB',mus:'Cuádriceps · Glúteos · Equilibrio',img:I('Barbell_Lunge'),sets:3,reps:'10 c/p',rest:'1:30',tip:'Paso largo, rodilla trasera cerca del suelo. Torso erguido.'},
-    {id:'hipthrust',name:'Hip thrust con barra',mus:'Glúteos · Isquios',img:I('Barbell_Hip_Thrust'),sets:4,reps:'12',rest:'2:00',tip:'Hombros en banco, barra sobre cadera. Pausa 1 seg apretando glúteo.'},
-    {id:'bulgaro',name:'Sentadilla búlgara KB',mus:'Cuádriceps · Glúteo',img:I('Split_Squat_with_Dumbbells'),sets:3,reps:'10 c/p',rest:'2:00',tip:'Pie trasero en banco. Baja controlado 2 seg.'},
-    {id:'calf',name:'Elevaciones de gemelo',mus:'Gemelos · Sóleo',img:I('Standing_Calf_Raises'),sets:3,reps:'15–20',rest:'1:00',tip:'Pausa 1 seg arriba, baja lento 3 seg.'},
-    {id:'hyperext',name:'Hiperextensiones',mus:'Lumbar · Glúteo · Isquios',img:I('Hyperextensions_Back_Extensions'),sets:3,reps:'12',rest:'1:30',tip:'Silla romana. Brazos cruzados o con disco añadido.'},
-    {id:'deadlift',name:'Peso muerto convencional',mus:'Cadena posterior · Trapecios · Core',img:I('Barbell_Deadlift'),sets:4,reps:'5–6',rest:'3:00',tip:'El rey de la cadena posterior. Barra pegada a las piernas.'},
-    {id:'goblet',name:'Sentadilla goblet KB',mus:'Cuádriceps · Glúteos · Core',img:I('Goblet_Squat'),sets:3,reps:'12',rest:'1:30',tip:'KB sujeto al pecho. Codos entre las rodillas abajo.'},
-    {id:'sumo',name:'Peso muerto sumo KB',mus:'Glúteos · Isquios · Aductores',img:I('Sumo_Deadlift'),sets:3,reps:'10',rest:'2:00',tip:'Pies más anchos, puntas afuera. KB entre piernas.'},
-    {id:'walking_lunge',name:'Zancadas caminando KB',mus:'Cuádriceps · Glúteos',img:I('Barbell_Walking_Lunge'),sets:3,reps:'12 c/p',rest:'1:30',tip:'Da zancadas hacia adelante sin parar.'},
-    {id:'stepup',name:'Step-up con KB',mus:'Cuádriceps · Glúteos · Equilibrio',img:I('Dumbbell_Step_Ups'),sets:3,reps:'10 c/p',rest:'1:30',tip:'Sube empujando con el talón de arriba.'},
-    {id:'goodmorning',name:'Good Morning (barra)',mus:'Isquiotibiales · Lumbar · Glúteos',img:I('Good_Morning'),sets:3,reps:'10',rest:'2:00',tip:'Barra en trapecios. Inclina torso con espalda recta.'},
-    {id:'glutebridge',name:'Puente de glúteo con barra',mus:'Glúteos · Isquios',img:I('Barbell_Glute_Bridge'),sets:3,reps:'15',rest:'1:30',tip:'Tumbado con barra sobre caderas. Pausa 1 seg apretando glúteo.'},
-    {id:'legcurl',name:'Curl femoral en banco',mus:'Isquiotibiales · Pantorrilla',img:I('Glute_Ham_Raise'),sets:3,reps:'12',rest:'1:30',tip:'Silla romana o banco inclinado. Baja controlado.'},
+    {id:'squat',name:'Sentadilla con barra',mus:'Cuádriceps · Glúteos · Core',img:I('Barbell_Full_Squat'),reps:'8–10',rest:'2:30',tip:'Barra en trapecio, pies a anchura de hombros. Rodillas siguen la punta del pie.'},
+    {id:'rdl',name:'Peso muerto rumano KB',mus:'Isquiotibiales · Glúteos · Lumbar',img:I('Romanian_Deadlift'),reps:'10–12',rest:'2:00',tip:'Espalda neutra, caderas atrás. KB pegados a las piernas en todo momento.'},
+    {id:'lunge',name:'Zancadas con KB',mus:'Cuádriceps · Glúteos · Equilibrio',img:I('Barbell_Lunge'),reps:'10 c/p',rest:'1:30',tip:'Paso largo, rodilla trasera cerca del suelo. Torso erguido.'},
+    {id:'hipthrust',name:'Hip thrust con barra',mus:'Glúteos · Isquios',img:I('Barbell_Hip_Thrust'),reps:'12',rest:'2:00',tip:'Hombros en banco, barra sobre cadera. Pausa 1 seg apretando glúteo.'},
+    {id:'bulgaro',name:'Sentadilla búlgara KB',mus:'Cuádriceps · Glúteo',img:I('Split_Squat_with_Dumbbells'),reps:'10 c/p',rest:'2:00',tip:'Pie trasero en banco. Baja controlado 2 seg.'},
+    {id:'calf',name:'Elevaciones de gemelo',mus:'Gemelos · Sóleo',img:I('Standing_Calf_Raises'),reps:'15–20',rest:'1:00',tip:'Pausa 1 seg arriba, baja lento 3 seg.'},
+    {id:'hyperext',name:'Hiperextensiones',mus:'Lumbar · Glúteo · Isquios',img:I('Hyperextensions_Back_Extensions'),reps:'12',rest:'1:30',tip:'Silla romana. Brazos cruzados o con disco añadido.'},
+    {id:'deadlift',name:'Peso muerto convencional',mus:'Cadena posterior · Trapecios · Core',img:I('Barbell_Deadlift'),reps:'5–6',rest:'3:00',tip:'El rey de la cadena posterior. Barra pegada a las piernas.'},
+    {id:'goblet',name:'Sentadilla goblet KB',mus:'Cuádriceps · Glúteos · Core',img:I('Goblet_Squat'),reps:'12',rest:'1:30',tip:'KB sujeto al pecho. Codos entre las rodillas abajo.'},
+    {id:'sumo',name:'Peso muerto sumo KB',mus:'Glúteos · Isquios · Aductores',img:I('Sumo_Deadlift'),reps:'10',rest:'2:00',tip:'Pies más anchos, puntas afuera. KB entre piernas.'},
+    {id:'walking_lunge',name:'Zancadas caminando KB',mus:'Cuádriceps · Glúteos',img:I('Barbell_Walking_Lunge'),reps:'12 c/p',rest:'1:30',tip:'Da zancadas hacia adelante sin parar.'},
+    {id:'stepup',name:'Step-up con KB',mus:'Cuádriceps · Glúteos · Equilibrio',img:I('Dumbbell_Step_Ups'),reps:'10 c/p',rest:'1:30',tip:'Sube empujando con el talón de arriba.'},
+    {id:'goodmorning',name:'Good Morning (barra)',mus:'Isquiotibiales · Lumbar · Glúteos',img:I('Good_Morning'),reps:'10',rest:'2:00',tip:'Barra en trapecios. Inclina torso con espalda recta.'},
+    {id:'glutebridge',name:'Puente de glúteo con barra',mus:'Glúteos · Isquios',img:I('Barbell_Glute_Bridge'),reps:'15',rest:'1:30',tip:'Tumbado con barra sobre caderas. Pausa 1 seg apretando glúteo.'},
+    {id:'legcurl',name:'Curl femoral en banco',mus:'Isquiotibiales · Pantorrilla',img:I('Glute_Ham_Raise'),reps:'12',rest:'1:30',tip:'Silla romana o banco inclinado. Baja controlado.'},
   ],
   push:[
-    {id:'bench_flat',name:'Press banca plano barra',mus:'Pecho · Tríceps · Hombro ant.',img:I('Barbell_Bench_Press_-_Medium_Grip'),sets:4,reps:'8–10',rest:'2:30',tip:'Omóplatos juntos y abajo. Barra al esternón. Codos a ~45°.'},
-    {id:'bench_inc',name:'Press banca inclinado KB/barra',mus:'Pecho superior · Hombro',img:I('Incline_Dumbbell_Press'),sets:3,reps:'10',rest:'2:00',tip:'Banco a 30°. Controla la bajada 3 seg.'},
-    {id:'dips',name:'Fondos en paralelas',mus:'Pecho inferior · Tríceps',img:I('Parallel_Bar_Dip'),sets:4,reps:'máx',rest:'2:00',tip:'Torso ligeramente adelante para pecho. Baja hasta 90°.'},
-    {id:'ohpress',name:'Press militar KB/barra',mus:'Hombro · Tríceps · Trapecio',img:I('Dumbbell_Shoulder_Press'),sets:3,reps:'10',rest:'2:00',tip:'Core activado, no arquear lumbar. Extensión completa.'},
-    {id:'flyes_inc',name:'Aperturas pecho inclinado KB',mus:'Pecho · Hombro anterior',img:I('Incline_Dumbbell_Flyes'),sets:3,reps:'12',rest:'1:30',tip:'Codos flexionados. Arco como abrazar árbol.'},
-    {id:'lateral',name:'Elevaciones laterales KB/banda',mus:'Hombro lateral · Trapecio',img:I('Side_Lateral_Raise'),sets:3,reps:'15',rest:'1:00',tip:'Hasta paralelo al suelo. Sin inercia del torso.'},
-    {id:'skull',name:'Press francés KB',mus:'Tríceps cabeza larga',img:I('Lying_Triceps_Press'),sets:3,reps:'12',rest:'1:00',tip:'Tumbado en banco, KB sobre la frente. Codos fijos.'},
-    {id:'bench_dips',name:'Fondos de tríceps en banco',mus:'Tríceps · Hombro',img:I('Bench_Dips'),sets:3,reps:'12',rest:'1:00',tip:'Torso vertical. Baja codos a 90°.'},
-    {id:'arnold',name:'Arnold Press KB',mus:'Hombro completo · Tríceps',img:I('Arnold_Dumbbell_Press'),sets:3,reps:'10',rest:'1:30',tip:'Palmas hacia ti → gira mientras subes.'},
-    {id:'pushups',name:'Flexiones con banda/lastradas',mus:'Pecho · Tríceps · Core',img:I('Pushups'),sets:3,reps:'máx',rest:'1:30',tip:'Banda cruzada en la espalda. Cuerpo recto, codos a 45°.'},
-    {id:'floor_press',name:'Press de suelo KB/barra',mus:'Pecho · Tríceps',img:I('Dumbbell_Floor_Press'),sets:3,reps:'10',rest:'2:00',tip:'Tumbado en suelo. Rango limitado. Seguro para el hombro.'},
-    {id:'bench_dec',name:'Press banca declinado barra',mus:'Pecho inferior · Tríceps',img:I('Decline_Barbell_Bench_Press'),sets:3,reps:'10',rest:'2:00',tip:'Banco declinado. Activa pectoral inferior.'},
-    {id:'barbell_ohp',name:'Press militar barra (de pie)',mus:'Hombro · Tríceps · Core',img:I('Barbell_Shoulder_Press'),sets:3,reps:'8',rest:'2:30',tip:'Core muy activo. El movimiento más funcional de hombro.'},
-    {id:'dips_chest',name:'Fondos (versión pecho)',mus:'Pecho inferior · Tríceps',img:I('Dips_-_Chest_Version'),sets:3,reps:'máx',rest:'2:00',tip:'Inclina torso ~30° y abre ligeramente los codos.'},
-    {id:'lateral_band',name:'Elevaciones laterales con banda',mus:'Hombro lateral',img:I('Lateral_Raise_-_With_Bands'),sets:3,reps:'15',rest:'1:00',tip:'Máxima tensión en la posición más alta.'},
-    {id:'overhead_tri',name:'Extensión tríceps sobre cabeza',mus:'Tríceps cabeza larga',img:I('Overhead_Triceps'),sets:3,reps:'12',rest:'1:00',tip:'KB con ambas manos. Baja detrás de la cabeza y extiende.'},
+    {id:'bench_flat',name:'Press banca plano barra',mus:'Pecho · Tríceps · Hombro ant.',img:I('Barbell_Bench_Press_-_Medium_Grip'),reps:'8–10',rest:'2:30',tip:'Omóplatos juntos y abajo. Barra al esternón. Codos a ~45°.'},
+    {id:'bench_inc',name:'Press banca inclinado KB/barra',mus:'Pecho superior · Hombro',img:I('Incline_Dumbbell_Press'),reps:'10',rest:'2:00',tip:'Banco a 30°. Controla la bajada 3 seg.'},
+    {id:'dips',name:'Fondos en paralelas',mus:'Pecho inferior · Tríceps',img:I('Parallel_Bar_Dip'),reps:'máx',rest:'2:00',tip:'Torso ligeramente adelante para pecho. Baja hasta 90°.'},
+    {id:'ohpress',name:'Press militar KB/barra',mus:'Hombro · Tríceps · Trapecio',img:I('Dumbbell_Shoulder_Press'),reps:'10',rest:'2:00',tip:'Core activado, no arquear lumbar. Extensión completa.'},
+    {id:'flyes_inc',name:'Aperturas pecho inclinado KB',mus:'Pecho · Hombro anterior',img:I('Incline_Dumbbell_Flyes'),reps:'12',rest:'1:30',tip:'Codos flexionados. Arco, sentir el estiramiento del pecho.'},
+    {id:'lateral',name:'Elevaciones laterales KB/banda',mus:'Hombro lateral · Trapecio',img:I('Side_Lateral_Raise'),reps:'15',rest:'1:00',tip:'Hasta paralelo al suelo. Sin inercia del torso.'},
+    {id:'skull',name:'Press francés KB',mus:'Tríceps cabeza larga',img:I('Lying_Triceps_Press'),reps:'12',rest:'1:00',tip:'Tumbado en banco, KB sobre la frente. Codos fijos.'},
+    {id:'bench_dips',name:'Fondos de tríceps en banco',mus:'Tríceps · Hombro',img:I('Bench_Dips'),reps:'12',rest:'1:00',tip:'Torso vertical. Baja codos a 90°.'},
+    {id:'arnold',name:'Arnold Press KB',mus:'Hombro completo · Tríceps',img:I('Arnold_Dumbbell_Press'),reps:'10',rest:'1:30',tip:'Palmas hacia ti → gira mientras subes.'},
+    {id:'pushups',name:'Flexiones con banda/lastradas',mus:'Pecho · Tríceps · Core',img:I('Pushups'),reps:'máx',rest:'1:30',tip:'Banda cruzada en la espalda. Cuerpo recto, codos a 45°.'},
+    {id:'floor_press',name:'Press de suelo KB/barra',mus:'Pecho · Tríceps',img:I('Dumbbell_Floor_Press'),reps:'10',rest:'2:00',tip:'Tumbado en suelo. Rango limitado. Seguro para el hombro.'},
+    {id:'bench_dec',name:'Press banca declinado barra',mus:'Pecho inferior · Tríceps',img:I('Decline_Barbell_Bench_Press'),reps:'10',rest:'2:00',tip:'Banco declinado. Activa pectoral inferior.'},
+    {id:'barbell_ohp',name:'Press militar barra (de pie)',mus:'Hombro · Tríceps · Core',img:I('Barbell_Shoulder_Press'),reps:'8',rest:'2:30',tip:'Core muy activo. El movimiento más funcional de hombro.'},
+    {id:'dips_chest',name:'Fondos (versión pecho)',mus:'Pecho inferior · Tríceps',img:I('Dips_-_Chest_Version'),reps:'máx',rest:'2:00',tip:'Inclina torso ~30° y abre ligeramente los codos.'},
+    {id:'lateral_band',name:'Elevaciones laterales con banda',mus:'Hombro lateral',img:I('Lateral_Raise_-_With_Bands'),reps:'15',rest:'1:00',tip:'Máxima tensión en la posición más alta.'},
+    {id:'overhead_tri',name:'Extensión tríceps sobre cabeza',mus:'Tríceps cabeza larga',img:I('Overhead_Triceps'),reps:'12',rest:'1:00',tip:'KB con ambas manos. Baja detrás de la cabeza y extiende.'},
   ],
   pull:[
-    {id:'pullup',name:'Dominadas agarre prono',mus:'Dorsal · Bíceps · Romboides',img:I('Pullups'),sets:4,reps:'máx',rest:'2:30',tip:'Agarre prono ancho. Escápulas abajo. Pecho a la barra.'},
-    {id:'row_bar',name:'Remo con barra inclinado',mus:'Dorsal · Trapecio · Bíceps',img:I('Bent_Over_Barbell_Row'),sets:4,reps:'10',rest:'2:00',tip:'Torso a 45°. Barra al ombligo. Pausa 1 seg.'},
-    {id:'row_trx',name:'Remo TRX / invertido',mus:'Romboides · Trapecio · Bíceps',img:I('Inverted_Row'),sets:3,reps:'12',rest:'1:30',tip:'Cuerpo recto. Más inclinado = más difícil.'},
-    {id:'chinup',name:'Chin-ups agarre supino',mus:'Bíceps · Dorsal inferior',img:I('Chin-Up'),sets:3,reps:'6–8',rest:'2:00',tip:'Agarre supino cerrado. Más bíceps que pull-up.'},
-    {id:'facepull',name:'Face pull con banda',mus:'Manguito rotador · Deltoides post.',img:I('Face_Pull'),sets:3,reps:'15',rest:'1:00',tip:'Codos arriba y afuera. Tira hacia las orejas.'},
-    {id:'curl_kb',name:'Curl de bíceps KB',mus:'Bíceps · Braquial',img:I('Dumbbell_Bicep_Curl'),sets:3,reps:'12',rest:'1:00',tip:'Codo fijo. Supina la muñeca arriba. Baja 3 seg.'},
-    {id:'curl_hammer',name:'Curl martillo KB',mus:'Braquiorradial · Antebrazo',img:I('Hammer_Curls'),sets:3,reps:'12',rest:'1:00',tip:'Agarre neutro. Parte externa del bíceps y antebrazo.'},
-    {id:'row_kb',name:'Remo a un brazo KB',mus:'Dorsal · Trapecio inferior',img:I('Alternating_Kettlebell_Row'),sets:3,reps:'10 c/b',rest:'1:30',tip:'Rodilla y mano en banco. Tira hacia la cadera.'},
-    {id:'pullover',name:'Pullover con KB',mus:'Dorsal · Serrato · Tríceps',img:I('Bent-Arm_Dumbbell_Pullover'),sets:3,reps:'12',rest:'1:30',tip:'Tumbado transversal. KB en arco sobre la cabeza.'},
-    {id:'conc_curl',name:'Curl de concentración KB',mus:'Bíceps pico · Braquial',img:I('Concentration_Curls'),sets:3,reps:'12',rest:'1:00',tip:'Sentado, codo en muslo interior. Contracción máxima.'},
-    {id:'pullup_w',name:'Dominadas lastradas',mus:'Dorsal · Bíceps · Core',img:I('Weighted_Pull_Ups'),sets:3,reps:'6–8',rest:'2:30',tip:'Solo cuando hagas 12+ sin peso.'},
-    {id:'vbar_pull',name:'Dominadas agarre neutro',mus:'Dorsal · Bíceps · Braquial',img:I('V-Bar_Pullup'),sets:3,reps:'máx',rest:'2:00',tip:'Palmas enfrentadas. Cómodo para el codo.'},
-    {id:'rear_delt',name:'Remo rear delt barra',mus:'Deltoides posterior · Romboides',img:I('Barbell_Rear_Delt_Row'),sets:3,reps:'15',rest:'1:00',tip:'Torso casi horizontal. Codos muy abiertos.'},
-    {id:'renegade',name:'Remo renegade KB',mus:'Dorsal · Core · Estabilizadores',img:I('Alternating_Renegade_Row'),sets:3,reps:'8 c/b',rest:'2:00',tip:'Plancha sobre dos KB. Rema evitando rotar el torso.'},
-    {id:'rev_fly',name:'Reverse flyes KB/banda',mus:'Deltoides posterior · Romboides',img:I('Reverse_Flyes'),sets:3,reps:'15',rest:'1:00',tip:'Inclinado. Abre brazos en arco hasta paralelos.'},
-    {id:'spider_curl',name:'Curl araña KB',mus:'Bíceps · Braquial',img:I('Spider_Curl'),sets:3,reps:'10',rest:'1:00',tip:'Tumbado boca abajo en banco inclinado. Sin inercia.'},
+    {id:'pullup',name:'Dominadas agarre prono',mus:'Dorsal · Bíceps · Romboides',img:I('Pullups'),reps:'máx',rest:'2:30',tip:'Agarre prono ancho. Escápulas abajo. Pecho a la barra.'},
+    {id:'row_bar',name:'Remo con barra inclinado',mus:'Dorsal · Trapecio · Bíceps',img:I('Bent_Over_Barbell_Row'),reps:'10',rest:'2:00',tip:'Torso a 45°. Barra al ombligo. Pausa 1 seg.'},
+    {id:'row_trx',name:'Remo TRX / invertido',mus:'Romboides · Trapecio · Bíceps',img:I('Inverted_Row'),reps:'12',rest:'1:30',tip:'Cuerpo recto. Más inclinado = más difícil.'},
+    {id:'chinup',name:'Chin-ups agarre supino',mus:'Bíceps · Dorsal inferior',img:I('Chin-Up'),reps:'6–8',rest:'2:00',tip:'Agarre supino cerrado. Más bíceps que pull-up.'},
+    {id:'facepull',name:'Face pull con banda',mus:'Manguito rotador · Deltoides post.',img:I('Face_Pull'),reps:'15',rest:'1:00',tip:'Codos arriba y afuera. Tira hacia las orejas.'},
+    {id:'curl_kb',name:'Curl de bíceps KB',mus:'Bíceps · Braquial',img:I('Dumbbell_Bicep_Curl'),reps:'12',rest:'1:00',tip:'Codo fijo. Supina la muñeca arriba. Baja 3 seg.'},
+    {id:'curl_hammer',name:'Curl martillo KB',mus:'Braquiorradial · Antebrazo',img:I('Hammer_Curls'),reps:'12',rest:'1:00',tip:'Agarre neutro. Parte externa del bíceps y antebrazo.'},
+    {id:'row_kb',name:'Remo a un brazo KB',mus:'Dorsal · Trapecio inferior',img:I('Alternating_Kettlebell_Row'),reps:'10 c/b',rest:'1:30',tip:'Rodilla y mano en banco. Tira hacia la cadera.'},
+    {id:'pullover',name:'Pullover con KB',mus:'Dorsal · Serrato · Tríceps',img:I('Bent-Arm_Dumbbell_Pullover'),reps:'12',rest:'1:30',tip:'Tumbado transversal. KB en arco sobre la cabeza.'},
+    {id:'conc_curl',name:'Curl de concentración KB',mus:'Bíceps pico · Braquial',img:I('Concentration_Curls'),reps:'12',rest:'1:00',tip:'Sentado, codo en muslo interior. Contracción máxima.'},
+    {id:'pullup_w',name:'Dominadas lastradas',mus:'Dorsal · Bíceps · Core',img:I('Weighted_Pull_Ups'),reps:'6–8',rest:'2:30',tip:'Solo cuando hagas 12+ sin peso.'},
+    {id:'vbar_pull',name:'Dominadas agarre neutro',mus:'Dorsal · Bíceps · Braquial',img:I('V-Bar_Pullup'),reps:'máx',rest:'2:00',tip:'Palmas enfrentadas. Cómodo para el codo.'},
+    {id:'rear_delt',name:'Remo rear delt barra',mus:'Deltoides posterior · Romboides',img:I('Barbell_Rear_Delt_Row'),reps:'15',rest:'1:00',tip:'Torso casi horizontal. Codos muy abiertos.'},
+    {id:'renegade',name:'Remo renegade KB',mus:'Dorsal · Core · Estabilizadores',img:I('Alternating_Renegade_Row'),reps:'8 c/b',rest:'2:00',tip:'Plancha sobre dos KB. Rema evitando rotar el torso.'},
+    {id:'rev_fly',name:'Reverse flyes KB/banda',mus:'Deltoides posterior · Romboides',img:I('Reverse_Flyes'),reps:'15',rest:'1:00',tip:'Inclinado. Abre brazos en arco hasta paralelos.'},
+    {id:'spider_curl',name:'Curl araña KB',mus:'Bíceps · Braquial',img:I('Spider_Curl'),reps:'10',rest:'1:00',tip:'Tumbado boca abajo en banco inclinado. Sin inercia.'},
   ]
 };
 
@@ -557,9 +595,8 @@ function saveSel(key,set){localStorage.setItem('sel_'+key,JSON.stringify([...set
 
 let day='legs';
 let selLegs,selPush,selPull,selWarm,selCore;
-let doneMain={}, doneWarmSet=new Set(), doneCoreSet=new Set();
-let seriesDone={};
-let mMode='warm', mTemp=new Set();
+let doneMain={},doneWarmSet=new Set(),doneCoreSet=new Set(),seriesDone={};
+let mMode='warm',mTemp=new Set();
 
 function initSel(){
   selLegs=loadSel('legs',POOLS.legs,DEFAULTS.legs);
@@ -587,7 +624,10 @@ function render(){
   document.getElementById('htags').innerHTML=m.tags.map(t=>`<span class="htag" style="background:var(${m.dim});color:var(${m.c})">${t}</span>`).join('');
   ['legs','push','pull'].forEach(k=>document.getElementById('btn-'+k).className='dt'+(k===day?' on-'+k:''));
   document.getElementById('pfill').style.background=`var(${m.c})`;
-  build(); updProg();
+  build();
+  updProg();
+  // small delay so elements are painted before measuring
+  setTimeout(setLayout,50);
 }
 
 function build(){
@@ -600,10 +640,10 @@ function build(){
   // WARMUP
   h+=sec('var(--warm)','Calentamiento','warm');
   h+=`<div class="tblock"><div class="tblock-hdr">
-    <div class="tblock-title" style="color:var(--warm)">3 RONDAS · 25 SEG / EJERCICIO · 12 SEG DESCANSO · 45 SEG ENTRE RONDAS</div>
-    <div class="tblock-sub">Tap foto para marcar · Tap nombre para instrucciones</div>
+    <div class="tblock-title" style="color:var(--warm)">3 RONDAS · 25 SEG / EJERCICIO · 12 SEG ENTRE EJERCICIOS · 45 SEG ENTRE RONDAS</div>
+    <div class="tblock-sub">Tap foto → marcar · Tap nombre → instrucciones</div>
   </div><div class="tex-list">`;
-  wl.forEach(ex=>{const done=doneWarmSet.has(ex.id);h+=texRow(ex,done,'warm','var(--warm)');});
+  wl.forEach(ex=>{h+=texRow(ex,doneWarmSet.has(ex.id),'warm','var(--warm)');});
   h+=`</div><div class="tblock-footer">
     <button class="tbtn" style="background:var(--warm)" onclick="startWarm()">▶ Iniciar calentamiento</button>
     <button class="tedit" onclick="openModal('warm')">✏</button>
@@ -612,21 +652,21 @@ function build(){
   // CORE
   h+=sec('var(--core)','Core','core');
   h+=`<div class="tblock"><div class="tblock-hdr">
-    <div class="tblock-title" style="color:var(--core)">4 SERIES · 30 SEG · 12 SEG ENTRE SERIES · 45 SEG ENTRE EJERCICIOS</div>
-    <div class="tblock-sub">Tap foto para marcar · Tap nombre para instrucciones</div>
+    <div class="tblock-title" style="color:var(--core)">3 SERIES · 30 SEG · 12 SEG ENTRE SERIES · 45 SEG ENTRE EJERCICIOS</div>
+    <div class="tblock-sub">Tap foto → marcar · Tap nombre → instrucciones</div>
   </div><div class="tex-list">`;
-  cl.forEach(ex=>{const done=doneCoreSet.has(ex.id);h+=texRow(ex,done,'core','var(--core)');});
+  cl.forEach(ex=>{h+=texRow(ex,doneCoreSet.has(ex.id),'core','var(--core)');});
   h+=`</div><div class="tblock-footer">
     <button class="tbtn" style="background:var(--core)" onclick="startCore()">▶ Iniciar core</button>
     <button class="tedit" onclick="openModal('core')">✏</button>
   </div></div>`;
 
   // MAIN
-  h+=sec(`var(${m.c})`,'Ejercicios principales',day);
+  h+=sec(`var(${m.c})`,'Ejercicios principales · 3 series',day);
   ml.forEach(ex=>{
     const done=!!doneMain[ex.id];
     const sd=seriesDone[ex.id]||0;
-    const dots=Array.from({length:ex.sets},(_,i)=>`<div class="serie-dot${i<sd?' done-dot':''}" style="color:var(${m.c})" onclick="toggleSerie('${ex.id}',${i})"></div>`).join('');
+    const dots=Array.from({length:3},(_,i)=>`<div class="serie-dot${i<sd?' done-dot':''}" style="color:var(${m.c})" onclick="toggleSerie('${ex.id}',${i})"></div>`).join('');
     h+=`<div class="excard${done?' done':''}" id="ec${ex.id}">
       <div class="ex-img anim" id="ei${ex.id}" onclick="pauseImg('${ex.id}',this)">
         <img class="p0" src="${ex.img[0]}" loading="lazy" alt="">
@@ -637,12 +677,13 @@ function build(){
         <div class="ex-name">${ex.name}</div>
         <div class="ex-muscle" style="color:var(${m.c})">${ex.mus}</div>
         <div class="chips">
-          <div class="chip"><span class="chip-v" style="color:var(${m.c})">${ex.sets}</span><span class="chip-l">SERIES</span></div>
+          <div class="chip"><span class="chip-v" style="color:var(${m.c})">3</span><span class="chip-l">SERIES</span></div>
           <div class="chip"><span class="chip-v" style="color:var(${m.c});font-size:${String(ex.reps).length>5?'14px':'20px'}">${ex.reps}</span><span class="chip-l">REPS</span></div>
           <div class="chip"><span class="chip-v" style="color:var(${m.c});font-size:14px">${ex.rest}</span><span class="chip-l">DESCANSO</span></div>
         </div>
-        <div class="serie-dots">${dots}<span class="serie-lbl">${sd}/${ex.sets} series</span></div>
+        <div class="serie-dots">${dots}<span class="serie-lbl">${sd}/3 series</span></div>
         <div class="ex-tip">${ex.tip}</div>
+        <button class="ex-timer-btn" style="background:var(${m.c})" onclick="startSingleEx('${ex.id}')">▶ Iniciar timer · 40 seg</button>
         <button class="done-btn${done?' marked':''}" style="${done?`background:var(${m.c})`:''}" onclick="markMain('${ex.id}')">
           ${done?'✓ Completado':'→ Marcar completado'}
         </button>
@@ -691,72 +732,94 @@ function updProg(){
 function startWarm(){
   getCtx();
   const wl=WARMUP.filter(e=>selWarm.has(e.id));
-  doneWarmSet=new Set(); build();
-  runWarm(wl,3,25);
+  doneWarmSet=new Set();build();
+  runWarm(wl);
 }
 function startCore(){
   getCtx();
   const cl=CORE.filter(e=>selCore.has(e.id));
-  doneCoreSet=new Set(); build();
-  runBlock('core',cl,()=>4,30);
+  doneCoreSet=new Set();seriesDone={};build();
+  runBlock('core',cl,30);
 }
 function startMain(){
   getCtx();
   const ml=POOLS[day].filter(e=>getSel(day).has(e.id));
-  seriesDone={}; doneMain={}; build();
-  runBlock('main',ml,ex=>ex.sets,40);
+  seriesDone={};doneMain={};build();
+  runBlock('main',ml,40);
+}
+// Start timer for a single exercise (3 series, 40s work, 12s rest between)
+function startSingleEx(id){
+  getCtx();
+  const ex=POOLS[day].find(e=>e.id===id);if(!ex)return;
+  killTimer();
+  T.blockKey='main';T.color='var('+META[day].c+')';
+  T.exTotal=1;T.exDone=0;
+  seriesDone[id]=0;
+  highlightEx(id);
+  let serie=0;
+  function doSerie(){
+    if(serie>=3){
+      sndEndExercise();markTimedDone('main',id);
+      T.exDone=1;renderTimer();highlightEx(null);return;
+    }
+    const sub=`${ex.name}  ·  serie ${serie+1}/3`;
+    startPhase(40,'TRABAJO','',sub,false,()=>{
+      sndEndWork();markSerieDone('main',id,serie);
+      serie++;
+      if(serie<3){startPhase(12,'DESCANSO',`Serie ${serie+1}/3 a punto`,'',true,()=>doSerie());}
+      else{sndEndExercise();markTimedDone('main',id);T.exDone=1;renderTimer();highlightEx(null);}
+    });
+  }
+  startCountdown5(ex.name+' · serie 1/3',()=>doSerie());
 }
 
 function markTimedDone(type,id){
-  if(type==='warm') doneWarmSet.add(id);
-  else if(type==='core') doneCoreSet.add(id);
+  if(type==='warm')doneWarmSet.add(id);
+  else if(type==='core')doneCoreSet.add(id);
   else doneMain[id]=true;
   const el=document.getElementById('ti'+id)||document.getElementById('ec'+id);
-  if(el) el.classList.add('done');
+  if(el)el.classList.add('done');
   updProg();
 }
 function markSerieDone(k,id,serieIdx){
-  if(k==='main'||k==='core'){
-    seriesDone[id]=(seriesDone[id]||0)+1;
-    const dots=document.querySelectorAll(`#ec${id} .serie-dot`);
-    dots.forEach((d,i)=>d.classList.toggle('done-dot',i<seriesDone[id]));
-    const lbl=document.querySelector(`#ec${id} .serie-lbl`);
-    const ex=POOLS[day].find(e=>e.id===id);
-    if(lbl&&ex) lbl.textContent=`${seriesDone[id]}/${ex.sets} series`;
-  }
+  seriesDone[id]=(seriesDone[id]||0)+1;
+  const dots=document.querySelectorAll(`#ec${id} .serie-dot, #ti${id} .serie-dot`);
+  dots.forEach((d,i)=>d.classList.toggle('done-dot',i<seriesDone[id]));
+  const lbl=document.querySelector(`#ec${id} .serie-lbl`);
+  if(lbl)lbl.textContent=`${seriesDone[id]}/3 series`;
 }
 
 // ══════════════════════════════════════════════════
 // INTERACTIONS
 // ══════════════════════════════════════════════════
 function showDay(d){
-  day=d; doneMain={}; doneWarmSet=new Set(); doneCoreSet=new Set(); seriesDone={};
-  killTimer(); renderSticky();
-  render(); window.scrollTo({top:0,behavior:'smooth'});
+  day=d;doneMain={};doneWarmSet=new Set();doneCoreSet=new Set();seriesDone={};
+  killTimer();renderTimer();
+  render();window.scrollTo({top:0,behavior:'smooth'});
 }
 function markMain(id){
   doneMain[id]=!doneMain[id];
-  if(!doneMain[id]) delete seriesDone[id];
-  build(); updProg();
+  if(!doneMain[id])delete seriesDone[id];
+  build();updProg();setTimeout(setLayout,50);
 }
 function toggleSerie(id,idx){
-  const ex=POOLS[day].find(e=>e.id===id); if(!ex) return;
   const cur=seriesDone[id]||0;
   seriesDone[id]=idx<cur?idx:idx+1;
-  doneMain[id]=seriesDone[id]>=ex.sets;
-  build(); updProg();
+  doneMain[id]=seriesDone[id]>=3;
+  build();updProg();setTimeout(setLayout,50);
 }
 function toggleTimed(type,id){
   const s=type==='warm'?doneWarmSet:doneCoreSet;
   if(s.has(id))s.delete(id);else s.add(id);
   const el=document.getElementById('ti'+id);
-  if(el) el.classList.toggle('done',s.has(id));
+  if(el)el.classList.toggle('done',s.has(id));
   updProg();
 }
 function expandTex(id){
   const item=document.getElementById('ti'+id);if(!item)return;
   const open=item.classList.toggle('open');
   const btn=document.getElementById('texp'+id);if(btn)btn.textContent=open?'▾ ocultar':'▸ instrucciones';
+  setTimeout(setLayout,200);
 }
 function pauseImg(id,el){
   const p=el.classList.toggle('paused');
@@ -785,7 +848,7 @@ function openModal(mode){
       <div class="mitem-img anim"><img src="${ex.img[0]}" loading="lazy" alt=""><img class="p1m" src="${ex.img[1]}" loading="lazy" alt=""></div>
       <div class="mitem-info">
         <div class="mitem-name">${ex.name}</div>
-        <div class="mitem-meta">${ex.meta||(ex.sets+'×'+ex.reps)}</div>
+        <div class="mitem-meta">${ex.meta||(ex.reps?'3×'+ex.reps:'')}</div>
         <div class="mitem-instr">${ex.instr||ex.tip}</div>
         <div class="mitem-exp" onclick="expandMI('${ex.id}',event)">▸ instrucciones</div>
       </div>
@@ -814,14 +877,13 @@ function saveModal(){
   else if(mMode==='legs'){selLegs=new Set(mTemp);saveSel('legs',selLegs);}
   else if(mMode==='push'){selPush=new Set(mTemp);saveSel('push',selPush);}
   else if(mMode==='pull'){selPull=new Set(mTemp);saveSel('pull',selPull);}
-  closeModal();doneMain={};seriesDone={};build();updProg();
+  closeModal();doneMain={};seriesDone={};build();updProg();setTimeout(setLayout,50);
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');}
 function bgClose(e){if(e.target===document.getElementById('overlay'))closeModal();}
 
 initSel();
 render();
-renderSticky();
 </script>
 </body>
 </html>
