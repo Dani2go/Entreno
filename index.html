@@ -84,6 +84,11 @@ button{font-family:inherit;cursor:pointer}
 .hmeta{font-size:12px;color:var(--muted);margin-top:3px}
 .htags{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .htag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.4px}
+.time-est{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.test-block{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:6px 12px;text-align:center}
+.test-label{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.test-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;line-height:1;margin-top:1px}
+.test-total{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
 
 /* ── PROGRESS ── */
 .prog{padding:0 16px 10px}
@@ -232,6 +237,7 @@ button{font-family:inherit;cursor:pointer}
   <div class="htitle" id="htitle">PIERNAS</div>
   <div class="hmeta" id="hmeta">~60 min</div>
   <div class="htags" id="htags"></div>
+  <div class="time-est" id="time-est"></div>
 </div>
 <div class="prog">
   <div class="prog-row"><span id="ptxt">0 completados</span><span id="ppct">0%</span></div>
@@ -397,7 +403,7 @@ function renderTimer(){
   const ec=document.getElementById('ft-excount');
   const rc=document.getElementById('ft-round');
   const exNum=T.exTotal>0?(T.phaseLbl==='DESCANSO'&&T.exDone>0?T.exDone:T.exDone+1):0;
-  ec.textContent=T.exTotal>0&&T.running?`Ej. ${exNum}/${T.exTotal}`:'';
+  ec.textContent=T.exTotal>0&&T.running?`Ej ${exNum}/${T.exTotal}`:'';
   ec.style.color=T.color;
   // Round counter — only shown for blocks that have rounds (warm) or series
   if(rc){
@@ -428,7 +434,7 @@ function renderTimer(){
 function runWarm(exList){
   killTimer();
   T.blockKey='warm';T.color='var(--warm)';
-  T.exTotal=3;T.exDone=0;
+  T.exTotal=exList.length;T.exDone=0;
   let round=0,exIdx=0;
   highlightTex(null);
 
@@ -441,6 +447,7 @@ function runWarm(exList){
     startPhase(25,'TRABAJO','',ex.name,false,()=>{
       sndEndWork();
       markTimedDone('warm',ex.id);
+      T.exDone=exIdx+1;renderTimer();
       exIdx++;
       if(exIdx<exList.length){
         // 12s rest — long beep at end signals next exercise
@@ -451,11 +458,12 @@ function runWarm(exList){
   }
 
   function endRound(){
-    round++;T.exDone=round;renderTimer();
+    round++;
     if(round>=3){sndEndBlock();killTimer();highlightTex(null);T.exDone=3;renderTimer();return;}
     // 45s between rounds — long beep at end
     T.roundLabel='Ronda '+(round+1)+'/3';
     T.serieLabel=exList[0].name+' 1/3';
+    T.exDone=0;
     startPhase(45,'DESCANSO ENTRE RONDAS','',exList[0].name,true,()=>{exIdx=0;doEx();});
   }
 
@@ -657,6 +665,7 @@ function render(){
   document.getElementById('pfill').style.background=`var(${m.c})`;
   build();
   updProg();
+  calcTimes();
   // small delay so elements are painted before measuring
   setTimeout(setLayout,50);
 }
@@ -827,7 +836,7 @@ function markSerieDone(k,id,serieIdx){
 function showDay(d){
   day=d;doneMain={};doneWarmSet=new Set();doneCoreSet=new Set();seriesDone={};
   killTimer();renderTimer();
-  render();window.scrollTo({top:0,behavior:'smooth'});
+  render();calcTimes();window.scrollTo({top:0,behavior:'smooth'});
 }
 function markMain(id){
   doneMain[id]=!doneMain[id];
@@ -909,10 +918,56 @@ function saveModal(){
   else if(mMode==='legs'){selLegs=new Set(mTemp);saveSel('legs',selLegs);}
   else if(mMode==='push'){selPush=new Set(mTemp);saveSel('push',selPush);}
   else if(mMode==='pull'){selPull=new Set(mTemp);saveSel('pull',selPull);}
-  closeModal();doneMain={};seriesDone={};build();updProg();setTimeout(setLayout,50);
+  closeModal();doneMain={};seriesDone={};build();updProg();calcTimes();setTimeout(setLayout,50);
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');}
 function bgClose(e){if(e.target===document.getElementById('overlay'))closeModal();}
+
+// ──────────────────────────────────────────────────────
+// TIME CALCULATOR
+// ──────────────────────────────────────────────────────
+function calcTimes(){
+  const wl=WARMUP.filter(e=>selWarm.has(e.id));
+  const cl=CORE.filter(e=>selCore.has(e.id));
+  const ml=POOLS[day].filter(e=>getSel(day).has(e.id));
+
+  // WARMUP: 3 rounds × (exercises × 25s work + (exercises-1) × 12s rest) + 2 × 45s between rounds
+  const warmPerRound = wl.length * 25 + Math.max(0, wl.length-1) * 12;
+  const warmTotal = 3 * warmPerRound + 2 * 45;
+
+  // CORE: exercises × (4 series × 30s + 3 × 12s rest) + (exercises-1) × 45s between
+  const corePerEx = 4 * 30 + 3 * 12;
+  const coreTotal = cl.length * corePerEx + Math.max(0, cl.length-1) * 45;
+
+  // MAIN: exercises × (3 series × 40s + 2 × 12s rest) + (exercises-1) × 45s between
+  const mainPerEx = 3 * 40 + 2 * 12;
+  const mainTotal = ml.length * mainPerEx + Math.max(0, ml.length-1) * 45;
+
+  const total = warmTotal + coreTotal + mainTotal;
+
+  function fmt(s){ const m=Math.floor(s/60); return m+'min'; }
+  function fmtLong(s){ const m=Math.floor(s/60),sc=s%60; return sc>0?m+'m '+sc+'s':m+' min'; }
+
+  const el=document.getElementById('time-est');
+  if(!el)return;
+  el.innerHTML=`
+    <div class="test-block">
+      <div class="test-label">🔥 Calentamiento</div>
+      <div class="test-val" style="color:var(--warm)">${fmt(warmTotal)}</div>
+    </div>
+    <div class="test-block">
+      <div class="test-label">💪 Core</div>
+      <div class="test-val" style="color:var(--core)">${fmt(coreTotal)}</div>
+    </div>
+    <div class="test-block">
+      <div class="test-label">${META[day].title}</div>
+      <div class="test-val" style="color:var(${META[day].c})">${fmt(mainTotal)}</div>
+    </div>
+    <div class="test-block test-total">
+      <div class="test-label">⏱ TOTAL</div>
+      <div class="test-val" style="color:var(--white)">${fmtLong(total)}</div>
+    </div>`;
+}
 
 initSel();
 render();
