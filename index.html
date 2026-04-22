@@ -62,8 +62,8 @@ button{font-family:inherit;cursor:pointer}
 /* row 2: phase + BIG clock + buttons */
 .ft-main{display:flex;align-items:center;padding:2px 14px 6px;gap:10px}
 .ft-phase{flex:1;min-width:0}
-.ft-phase-lbl{font-size:12px;font-weight:700;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ft-phase-sub{font-size:13px;font-weight:700;color:var(--white);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.3px}
+.ft-phase-lbl{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-phase-sub{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--white);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:1px;line-height:1.1}
 .ft-clock{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:2px;line-height:1;min-width:88px;text-align:right;transition:color .3s}
 .ft-btns{display:flex;gap:5px;flex-shrink:0}
 .ft-btn{width:36px;height:32px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s}
@@ -352,6 +352,7 @@ function startPhase(sec,phaseLbl,phaseSub,stepLbl,isRest,onDone){
 
 // 5s countdown only at the very start of a block
 function startCountdown5(firstExName,onGo){
+  T.serieLabel=firstExName.split(' · ')[0]+' 1/3';
   if(T.int) clearInterval(T.int);
   T.sec=5;T.maxSec=5;
   T.phaseLbl='PREPARADO…';T.phaseSub='';T.stepLbl=firstExName;
@@ -390,12 +391,16 @@ function renderTimer(){
   bEl.style.color=T.running?T.color:'var(--muted)';
 
   const ec=document.getElementById('ft-excount');
-  ec.textContent=T.exTotal>0?`${T.exDone}/${T.exTotal}`:'';
+  // Show which exercise we're on (1-indexed), not how many done
+  const exNum=T.exTotal>0?(T.phaseLbl==='DESCANSO'&&T.exDone>0?T.exDone:T.exDone+1):0;
+  ec.textContent=T.exTotal>0&&T.running?`Ej. ${exNum}/${T.exTotal}`:'';
   ec.style.color=T.color;
 
-  document.getElementById('ft-lbl').textContent=T.running?(T.phaseLbl||'EN CURSO'):'Pulsa ▶ en cualquier bloque';
-  // Show exercise name + serie counter in sub line
-  document.getElementById('ft-sub').textContent=T.serieLabel||T.phaseSub||'';
+  const isIdle=!T.running;
+  document.getElementById('ft-lbl').textContent=isIdle?'PULSA ▶ PARA EMPEZAR':(T.phaseLbl||'EN CURSO');
+  // Big name + counter line
+  const bigLabel=T.serieLabel||T.phaseSub||'';
+  document.getElementById('ft-sub').textContent=isIdle?'':bigLabel;
 
   const clk=document.getElementById('ft-clock');
   clk.textContent=T.running?`${mm}:${ss}`:'—';
@@ -422,14 +427,14 @@ function runWarm(exList){
     if(exIdx>=exList.length){endRound();return;}
     const ex=exList[exIdx];
     highlightTex(ex.id);
-    T.serieLabel=ex.name+' · ronda '+(round+1)+'/3';
+    T.serieLabel=ex.name+' '+(round+1)+'/3';
     startPhase(25,'TRABAJO','',ex.name,false,()=>{
       sndEndWork();
       markTimedDone('warm',ex.id);
       exIdx++;
       if(exIdx<exList.length){
         // 12s rest — long beep at end signals next exercise
-        T.serieLabel='→ '+exList[exIdx].name;
+        T.serieLabel=exList[exIdx].name+' →';
         startPhase(12,'DESCANSO','',exList[exIdx].name,true,()=>doEx());
       } else { endRound(); }
     });
@@ -439,7 +444,7 @@ function runWarm(exList){
     round++;T.exDone=round;renderTimer();
     if(round>=3){sndEndBlock();killTimer();highlightTex(null);T.exDone=3;renderTimer();return;}
     // 45s between rounds — long beep at end
-    T.serieLabel='Ronda '+(round+1)+'/3 · '+exList[0].name;
+    T.serieLabel=exList[0].name+' ronda '+(round+1)+'/3';
     startPhase(45,'DESCANSO ENTRE RONDAS','',exList[0].name,true,()=>{exIdx=0;doEx();});
   }
 
@@ -463,14 +468,14 @@ function runBlock(key,exList,workSec){
 
     function doSerie(){
       if(serie>=totalSeries){endExercise();return;}
-      T.serieLabel=ex.name+' · '+( serie+1)+'/3';
+      T.serieLabel=ex.name+' '+(serie+1)+'/3';
       startPhase(workSec,'TRABAJO','',ex.name,false,()=>{
         sndEndWork();
         markSerieDone(key,ex.id,serie);
         serie++;
         if(serie<totalSeries){
           // 12s rest between series — long beep at end
-          T.serieLabel=ex.name+' · '+(serie+1)+'/3';
+          T.serieLabel=ex.name+' '+(serie+1)+'/3';
           startPhase(12,'DESCANSO','',ex.name,true,()=>doSerie());
         } else { endExercise(); }
       });
@@ -483,7 +488,7 @@ function runBlock(key,exList,workSec){
       exIdx++;
       if(exIdx<exList.length){
         // 45s rest between exercises — long beep at end
-        T.serieLabel='→ '+exList[exIdx].name;
+        T.serieLabel=exList[exIdx].name+' 1/3';
         startPhase(45,'DESCANSO','',exList[exIdx].name,true,()=>doExercise());
       } else { sndEndBlock();killTimer();T.exDone=exList.length;renderTimer();if(key==='main')highlightEx(null);else highlightTex(null); }
     }
@@ -514,7 +519,7 @@ const WARMUP=[
   {id:'mountain',name:'Escalador',meta:'3 × 25 seg',img:I('Mountain_Climbers'),instr:'Plancha alta, lleva alternando cada rodilla al pecho rápido. Caderas bajas, core activo. Es el mismo movimiento que el escalador de montaña.'},
   {id:'squat_bw',name:'Sentadilla sin peso',meta:'3 × 25 seg',img:I('Bodyweight_Squat'),instr:'Pies a anchura de hombros, brazos al frente. Baja hasta muslos paralelos.'},
   {id:'skipping',name:'Skipping (rodillas altas)',meta:'3 × 25 seg',img:I('Fast_Skipping'),instr:'Trota elevando rodillas por encima de la cadera. Torso erguido.'},
-  {id:'burpee',name:'Burpees',meta:'3 × 25 seg',img:I('Jackknife_Sit-Up'),instr:'De pie: dobla caderas, apoya manos en suelo → salta pies atrás a plancha → flexión de pecho → salta pies a manos → salta arriba con brazos extendidos. Movimiento explosivo y continuo.'},
+  {id:'burpee',name:'Burpees',meta:'3 × 25 seg',img:I('Knee_Tuck_Jump'),instr:'De pie: dobla caderas, apoya manos en suelo → salta pies atrás a plancha → flexión de pecho → salta pies a manos → salta arriba con brazos extendidos. Movimiento explosivo y continuo.'},
   {id:'rotacion',name:'Rotación de brazos',meta:'3 × 25 seg',img:I('Arm_Circles'),instr:'Brazos en cruz. Círculos desde el hombro. 15s adelante, 15s atrás.'},
   {id:'lunge_bw',name:'Zancadas sin peso',meta:'3 × 25 seg',img:I('Bodyweight_Walking_Lunge'),instr:'Zancadas alternando. Torso erguido, rodilla trasera cerca del suelo.'},
   {id:'hip_circ_warm',name:'Rotación de caderas',meta:'3 × 25 seg',img:I('Hip_Circles_prone'),instr:'Sentado con pies apoyados en el suelo y rodillas dobladas. Rota las rodillas de lado a lado tocando el suelo alternativamente. Moviliza la cadera antes de cargar.'},
@@ -773,11 +778,11 @@ function startSingleEx(id){
       sndEndExercise();markTimedDone('main',id);
       T.exDone=1;renderTimer();highlightEx(null);return;
     }
-    T.serieLabel=ex.name+' · '+(serie+1)+'/3';
+    T.serieLabel=ex.name+' '+(serie+1)+'/3';
     startPhase(40,'TRABAJO','',ex.name,false,()=>{
       sndEndWork();markSerieDone('main',id,serie);
       serie++;
-      if(serie<3){T.serieLabel=ex.name+' · '+serie+'/3';startPhase(12,'DESCANSO','',ex.name,true,()=>doSerie());}
+      if(serie<3){T.serieLabel=ex.name+' '+serie+'/3';startPhase(12,'DESCANSO','',ex.name,true,()=>doSerie());}
       else{sndEndExercise();markTimedDone('main',id);T.exDone=1;renderTimer();highlightEx(null);}
     });
   }
