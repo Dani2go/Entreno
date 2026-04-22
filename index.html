@@ -204,7 +204,10 @@ button{font-family:inherit;cursor:pointer}
   <div class="ftimer-card" id="ftcard">
     <div class="ft-top">
       <span class="ft-block" id="ft-block">EN ESPERA</span>
-      <span class="ft-excount" id="ft-excount"></span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+        <span class="ft-excount" id="ft-round"></span>
+        <span class="ft-excount" id="ft-excount"></span>
+      </div>
     </div>
     <div class="ft-main">
       <div class="ft-phase">
@@ -320,7 +323,7 @@ const T={
   sec:0,maxSec:1,
   running:false,paused:false,int:null,
   blockKey:'',color:'var(--white)',
-  phaseLbl:'',phaseSub:'',stepLbl:'',serieLabel:'',
+  phaseLbl:'',phaseSub:'',stepLbl:'',serieLabel:'',roundLabel:'',
   exTotal:0,exDone:0,
 };
 
@@ -353,6 +356,7 @@ function startPhase(sec,phaseLbl,phaseSub,stepLbl,isRest,onDone){
 // 5s countdown only at the very start of a block
 function startCountdown5(firstExName,onGo){
   T.serieLabel=firstExName.split(' · ')[0]+' 1/3';
+  T.roundLabel='';
   if(T.int) clearInterval(T.int);
   T.sec=5;T.maxSec=5;
   T.phaseLbl='PREPARADO…';T.phaseSub='';T.stepLbl=firstExName;
@@ -375,7 +379,7 @@ function timerPause(){
 function timerRestart(){
   killTimer();
   T.sec=0;T.maxSec=1;T.phaseLbl='';T.phaseSub='';T.stepLbl='';T.blockKey='';
-  T.exDone=0;T.exTotal=0;
+  T.exDone=0;T.exTotal=0;T.roundLabel='';T.serieLabel='';
   renderTimer();
 }
 
@@ -391,10 +395,15 @@ function renderTimer(){
   bEl.style.color=T.running?T.color:'var(--muted)';
 
   const ec=document.getElementById('ft-excount');
-  // Show which exercise we're on (1-indexed), not how many done
+  const rc=document.getElementById('ft-round');
   const exNum=T.exTotal>0?(T.phaseLbl==='DESCANSO'&&T.exDone>0?T.exDone:T.exDone+1):0;
   ec.textContent=T.exTotal>0&&T.running?`Ej. ${exNum}/${T.exTotal}`:'';
   ec.style.color=T.color;
+  // Round counter — only shown for blocks that have rounds (warm) or series
+  if(rc){
+    rc.textContent=T.roundLabel&&T.running?T.roundLabel:'';
+    rc.style.color=T.color;
+  }
 
   const isIdle=!T.running;
   document.getElementById('ft-lbl').textContent=isIdle?'PULSA ▶ PARA EMPEZAR':(T.phaseLbl||'EN CURSO');
@@ -427,6 +436,7 @@ function runWarm(exList){
     if(exIdx>=exList.length){endRound();return;}
     const ex=exList[exIdx];
     highlightTex(ex.id);
+    T.roundLabel='Ronda '+(round+1)+'/3';
     T.serieLabel=ex.name+' '+(round+1)+'/3';
     startPhase(25,'TRABAJO','',ex.name,false,()=>{
       sndEndWork();
@@ -444,7 +454,8 @@ function runWarm(exList){
     round++;T.exDone=round;renderTimer();
     if(round>=3){sndEndBlock();killTimer();highlightTex(null);T.exDone=3;renderTimer();return;}
     // 45s between rounds — long beep at end
-    T.serieLabel=exList[0].name+' ronda '+(round+1)+'/3';
+    T.roundLabel='Ronda '+(round+1)+'/3';
+    T.serieLabel=exList[0].name+' 1/3';
     startPhase(45,'DESCANSO ENTRE RONDAS','',exList[0].name,true,()=>{exIdx=0;doEx();});
   }
 
@@ -452,7 +463,8 @@ function runWarm(exList){
 }
 
 // CORE/MAIN: all 3 series of each exercise → 45s → next exercise
-function runBlock(key,exList,workSec){
+function runBlock(key,exList,workSec,totalSeries){
+  totalSeries=totalSeries||3;
   killTimer();
   T.blockKey=key;T.color=key==='core'?'var(--core)':'var(--white)';
   T.exTotal=exList.length;T.exDone=0;
@@ -462,20 +474,22 @@ function runBlock(key,exList,workSec){
   function doExercise(){
     if(exIdx>=exList.length){sndEndBlock();killTimer();T.exDone=exList.length;renderTimer();if(key==='main')highlightEx(null);else highlightTex(null);return;}
     const ex=exList[exIdx];
-    const totalSeries=3;
+    // totalSeries from outer scope
     let serie=0;
     if(key==='main') highlightEx(ex.id); else highlightTex(ex.id);
 
     function doSerie(){
-      if(serie>=totalSeries){endExercise();return;}
-      T.serieLabel=ex.name+' '+(serie+1)+'/3';
+      if(serie>=totalSeries){endExercise();return;} // totalSeries is 3 or 4
+      T.roundLabel='Serie '+(serie+1)+'/'+totalSeries;
+      T.serieLabel=ex.name+' '+(serie+1)+'/'+totalSeries;
       startPhase(workSec,'TRABAJO','',ex.name,false,()=>{
         sndEndWork();
         markSerieDone(key,ex.id,serie);
         serie++;
         if(serie<totalSeries){
           // 12s rest between series — long beep at end
-          T.serieLabel=ex.name+' '+(serie+1)+'/3';
+          T.roundLabel='Serie '+(serie+1)+'/'+totalSeries;
+          T.serieLabel=ex.name+' '+(serie+1)+'/'+totalSeries;
           startPhase(12,'DESCANSO','',ex.name,true,()=>doSerie());
         } else { endExercise(); }
       });
@@ -488,7 +502,8 @@ function runBlock(key,exList,workSec){
       exIdx++;
       if(exIdx<exList.length){
         // 45s rest between exercises — long beep at end
-        T.serieLabel=exList[exIdx].name+' 1/3';
+        T.roundLabel='Serie 1/'+totalSeries;
+        T.serieLabel=exList[exIdx].name+' 1/'+totalSeries;
         startPhase(45,'DESCANSO','',exList[exIdx].name,true,()=>doExercise());
       } else { sndEndBlock();killTimer();T.exDone=exList.length;renderTimer();if(key==='main')highlightEx(null);else highlightTex(null); }
     }
@@ -514,7 +529,7 @@ const B="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercis
 const I=f=>[`${B}/${f}/0.jpg`,`${B}/${f}/1.jpg`];
 
 const WARMUP=[
-  {id:'inchworm',name:'Gusano (Inchworm)',meta:'3 × 25 seg',img:I('Inchworm'),instr:'De pie, flexiona caderas, apoya manos en suelo y camínalas hasta plancha. Vuelve. Piernas rectas.'},
+  {id:'inchworm',name:'Gusano',meta:'3 × 25 seg',img:I('Inchworm'),instr:'De pie, flexiona caderas, apoya manos en suelo y camínalas hasta plancha. Vuelve. Piernas rectas.'},
   {id:'jumping',name:'Jumping Jacks',meta:'3 × 25 seg',img:I('Star_Jump'),instr:'Salta abriendo piernas y subiendo brazos sobre la cabeza. Ritmo constante.'},
   {id:'mountain',name:'Escalador',meta:'3 × 25 seg',img:I('Mountain_Climbers'),instr:'Plancha alta, lleva alternando cada rodilla al pecho rápido. Caderas bajas, core activo. Es el mismo movimiento que el escalador de montaña.'},
   {id:'squat_bw',name:'Sentadilla sin peso',meta:'3 × 25 seg',img:I('Bodyweight_Squat'),instr:'Pies a anchura de hombros, brazos al frente. Baja hasta muslos paralelos.'},
@@ -525,19 +540,19 @@ const WARMUP=[
   {id:'hip_circ_warm',name:'Rotación de caderas',meta:'3 × 25 seg',img:I('Hip_Circles_prone'),instr:'Sentado con pies apoyados en el suelo y rodillas dobladas. Rota las rodillas de lado a lado tocando el suelo alternativamente. Moviliza la cadera antes de cargar.'},
 ];
 const CORE=[
-  {id:'plancha',name:'Plancha frontal',meta:'3 × 30 seg',img:I('Plank'),instr:'Antebrazos y puntillas. Cuerpo recto. Core activado. Sin hundir ni elevar caderas.'},
-  {id:'planchalat',name:'Plancha lateral',meta:'3 × 30 seg c/lado',img:I('Side_Jackknife'),instr:'Antebrazo y borde lateral del pie apoyados. Cuerpo en línea recta lateral. Levanta la cadera del suelo. Mantén la posición sin que caiga la cadera.'},
-  {id:'dead_bug',name:'Dead Bug',meta:'3 × 30 seg',img:I('Dead_Bug'),instr:'Boca arriba, brazos al techo, rodillas 90°. Baja brazo der + pierna izq. Alterna.'},
-  {id:'russian',name:'Russian Twist KB',meta:'3 × 30 seg',img:I('Russian_Twist'),instr:'Sentado, espalda 45°. KB rota tocando el suelo a cada lado.'},
-  {id:'mountain_c',name:'Escalador (lento)',meta:'3 × 30 seg',img:I('Mountain_Climbers'),instr:'En plancha alta, lleva alternando cada rodilla hacia el pecho de forma lenta y controlada. Mantén las caderas bajas. Activa el core en todo momento. Ritmo controlado, no explosivo.'},
-  {id:'superman',name:'Paracaidista',meta:'3 × 30 seg',img:I('Superman'),instr:'Boca abajo con brazos extendidos al frente. Eleva simultáneamente brazos, pecho y piernas del suelo. Aguanta 2 seg en la posición más alta. Baja controlado. Refuerza la cadena posterior.'},
-  {id:'empuje_rod',name:'Empuje de rodillas',meta:'3 × 30 seg',img:I('Kneeling_Arm_Drill'),instr:'A cuatro patas, manos bajo hombros, rodillas bajo caderas. Extiende el brazo derecho y la pierna izquierda al mismo tiempo. Aguanta 2 seg. Baja y alterna. Estabiliza el core antes de mover.'},
-  {id:'toques',name:'Toques laterales',meta:'3 × 30 seg',img:I('Cross-Body_Crunch'),instr:'Tumbado boca arriba, rodillas dobladas y pies apoyados en el suelo. Desliza la mano derecha hacia el tobillo derecho flexionando el lateral. Vuelve al centro y repite al otro lado. Sin despegar la lumbar del suelo.'},
-  {id:'hollow',name:'Hollow Body Hold',meta:'3 × 30 seg',img:I('Scissor_Kick'),instr:'Tumbado boca arriba, presiona la lumbar contra el suelo. Eleva hombros y piernas ligeramente. Brazos extendidos atrás. Mantén la posición sin arquear la espalda baja en ningún momento.'},
-  {id:'glute_kick',name:'Patada de glúteo',meta:'3 × 30 seg',img:I('Glute_Kickback'),instr:'Cuatro patas. Extiende pierna atrás apretando glúteo. Cadera nivelada.'},
-  {id:'plank_arm_raise',name:'Plancha con toque de hombro',meta:'3 × 30 seg',img:I('Plank'),instr:'En plancha alta (brazos extendidos). Levanta la mano derecha y toca el hombro izquierdo. Vuelve y alterna. El core evita que el cuerpo rote. Pies ligeramente separados para más estabilidad.'},
-  {id:'hip_rot_plank',name:'Rotación de cadera (antebrazos)',meta:'3 × 30 seg',img:I('Hip_Circles_prone'),instr:'En plancha sobre antebrazos. Rota la cadera tocando el suelo con la cadera derecha y luego la izquierda de forma alternada y controlada. Core activado, movimiento lento y controlado.'},
-  {id:'plank_jacks',name:'Saltos de piernas en plancha',meta:'3 × 30 seg',img:I('Mountain_Climbers'),instr:'En plancha alta con brazos extendidos. Desde pies juntos, salta abriendo ambas piernas hacia los lados y vuelve a cerrarlas. Como un jumping jack pero en plancha. Core firme, caderas bajas.'},
+  {id:'plancha',name:'Plancha frontal',meta:'4 × 30 seg',img:I('Plank'),instr:'Antebrazos y puntillas. Cuerpo recto. Core activado. Sin hundir ni elevar caderas.'},
+  {id:'planchalat',name:'Plancha lateral',meta:'4 × 30 seg c/lado',img:I('Side_Jackknife'),instr:'Antebrazo y borde lateral del pie apoyados. Cuerpo en línea recta lateral. Levanta la cadera del suelo. Mantén la posición sin que caiga la cadera.'},
+  {id:'dead_bug',name:'Dead Bug',meta:'4 × 30 seg',img:I('Dead_Bug'),instr:'Boca arriba, brazos al techo, rodillas 90°. Baja brazo der + pierna izq. Alterna.'},
+  {id:'russian',name:'Russian Twist KB',meta:'4 × 30 seg',img:I('Russian_Twist'),instr:'Sentado, espalda 45°. KB rota tocando el suelo a cada lado.'},
+  {id:'mountain_c',name:'Escalador (lento)',meta:'4 × 30 seg',img:I('Mountain_Climbers'),instr:'En plancha alta, lleva alternando cada rodilla hacia el pecho de forma lenta y controlada. Mantén las caderas bajas. Activa el core en todo momento. Ritmo controlado, no explosivo.'},
+  {id:'superman',name:'Paracaidista',meta:'4 × 30 seg',img:I('Superman'),instr:'Boca abajo con brazos extendidos al frente. Eleva simultáneamente brazos, pecho y piernas del suelo. Aguanta 2 seg en la posición más alta. Baja controlado. Refuerza la cadena posterior.'},
+  {id:'empuje_rod',name:'Empuje de rodillas',meta:'4 × 30 seg',img:I('Kneeling_Arm_Drill'),instr:'A cuatro patas, manos bajo hombros, rodillas bajo caderas. Extiende el brazo derecho y la pierna izquierda al mismo tiempo. Aguanta 2 seg. Baja y alterna. Estabiliza el core antes de mover.'},
+  {id:'toques',name:'Toques laterales',meta:'4 × 30 seg',img:I('Cross-Body_Crunch'),instr:'Tumbado boca arriba, rodillas dobladas y pies apoyados en el suelo. Desliza la mano derecha hacia el tobillo derecho flexionando el lateral. Vuelve al centro y repite al otro lado. Sin despegar la lumbar del suelo.'},
+  {id:'hollow',name:'Hollow Body Hold',meta:'4 × 30 seg',img:I('Scissor_Kick'),instr:'Tumbado boca arriba, presiona la lumbar contra el suelo. Eleva hombros y piernas ligeramente. Brazos extendidos atrás. Mantén la posición sin arquear la espalda baja en ningún momento.'},
+  {id:'glute_kick',name:'Patada de glúteo',meta:'4 × 30 seg',img:I('Glute_Kickback'),instr:'Cuatro patas. Extiende pierna atrás apretando glúteo. Cadera nivelada.'},
+  {id:'plank_arm_raise',name:'Plancha con toque de hombro',meta:'4 × 30 seg',img:I('Plank'),instr:'En plancha alta (brazos extendidos). Levanta la mano derecha y toca el hombro izquierdo. Vuelve y alterna. El core evita que el cuerpo rote. Pies ligeramente separados para más estabilidad.'},
+  {id:'hip_rot_plank',name:'Rotación de cadera (antebrazos)',meta:'4 × 30 seg',img:I('Hip_Circles_prone'),instr:'En plancha sobre antebrazos. Rota la cadera tocando el suelo con la cadera derecha y luego la izquierda de forma alternada y controlada. Core activado, movimiento lento y controlado.'},
+  {id:'plank_jacks',name:'Saltos de piernas en plancha',meta:'4 × 30 seg',img:I('Mountain_Climbers'),instr:'En plancha alta con brazos extendidos. Desde pies juntos, salta abriendo ambas piernas hacia los lados y vuelve a cerrarlas. Como un jumping jack pero en plancha. Core firme, caderas bajas.'},
 ];
 const POOLS={
   legs:[
@@ -668,7 +683,7 @@ function build(){
   // CORE
   h+=sec('var(--core)','Core','core');
   h+=`<div class="tblock"><div class="tblock-hdr">
-    <div class="tblock-title" style="color:var(--core)">3 SERIES · 30 SEG · 12 SEG ENTRE SERIES · 45 SEG ENTRE EJERCICIOS</div>
+    <div class="tblock-title" style="color:var(--core)">4 SERIES · 30 SEG · 12 SEG ENTRE SERIES · 45 SEG ENTRE EJERCICIOS</div>
     <div class="tblock-sub">Tap foto → marcar · Tap nombre → instrucciones</div>
   </div><div class="tex-list">`;
   cl.forEach(ex=>{h+=texRow(ex,doneCoreSet.has(ex.id),'core','var(--core)');});
@@ -755,7 +770,7 @@ function startCore(){
   getCtx();
   const cl=CORE.filter(e=>selCore.has(e.id));
   doneCoreSet=new Set();seriesDone={};build();
-  runBlock('core',cl,30);
+  runBlock('core',cl,30,4);
 }
 function startMain(){
   getCtx();
@@ -778,11 +793,12 @@ function startSingleEx(id){
       sndEndExercise();markTimedDone('main',id);
       T.exDone=1;renderTimer();highlightEx(null);return;
     }
+    T.roundLabel='Serie '+(serie+1)+'/3';
     T.serieLabel=ex.name+' '+(serie+1)+'/3';
     startPhase(40,'TRABAJO','',ex.name,false,()=>{
       sndEndWork();markSerieDone('main',id,serie);
       serie++;
-      if(serie<3){T.serieLabel=ex.name+' '+serie+'/3';startPhase(12,'DESCANSO','',ex.name,true,()=>doSerie());}
+      if(serie<3){T.roundLabel='Serie '+serie+'/3';T.serieLabel=ex.name+' '+serie+'/3';startPhase(12,'DESCANSO','',ex.name,true,()=>doSerie());}
       else{sndEndExercise();markTimedDone('main',id);T.exDone=1;renderTimer();highlightEx(null);}
     });
   }
